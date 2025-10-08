@@ -1,13 +1,14 @@
 {
-  "name": "tools-manage-system",
+  "name": "my-database-project",
   "version": "1.0.0",
-  "description": "ระบบจัดการเครื่องมือสำหรับธุรการสโตว์",
+  "description": "ระบบจัดการเครื่องมือและการขอเบิก - Tools Management & Request System",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "node server.js",
     "start": "node server.js",
-    "manage": "echo \"Starting Tools Management System...\" && node server.js"
+    "manage": "echo \"Starting Tools Management System...\" && node server.js",
+    "track": "echo \"Starting Tools Track System...\" && node server.js"
   },
   "keywords": [],
   "author": "",
