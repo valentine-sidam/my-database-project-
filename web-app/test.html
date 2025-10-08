@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Firebase Connection</title>
+</head>
+<body>
+    <h1>Test Firebase Connection</h1>
+    <div id="status">กำลังทดสอบการเชื่อมต่อ...</div>
+    <div id="employeeCount"></div>
+    <div id="toolsCount"></div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <script>
+        // Temporary Firebase config for testing
+        const firebaseConfig = {
+            apiKey: "test-key",
+            authDomain: "my-database-project.firebaseapp.com",
+            projectId: "my-database-project",
+            storageBucket: "my-database-project.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "test-app-id"
+        };
+
+        try {
+            firebase.initializeApp(firebaseConfig);
+            const db = firebase.firestore();
+            
+            document.getElementById('status').innerHTML = '✅ Firebase initialized successfully';
+            
+            // Test employees collection
+            db.collection('employees').limit(1).get()
+                .then(snapshot => {
+                    document.getElementById('employeeCount').innerHTML = 
+                        `📊 Employees collection accessible (${snapshot.size} sample)`;
+                })
+                .catch(error => {
+                    document.getElementById('employeeCount').innerHTML = 
+                        `❌ Error accessing employees: ${error.message}`;
+                });
+            
+            // Test tools collection  
+            db.collection('tools').limit(1).get()
+                .then(snapshot => {
+                    document.getElementById('toolsCount').innerHTML = 
+                        `🔧 Tools collection accessible (${snapshot.size} sample)`;
+                })
+                .catch(error => {
+                    document.getElementById('toolsCount').innerHTML = 
+                        `❌ Error accessing tools: ${error.message}`;
+                });
+                
+        } catch (error) {
+            document.getElementById('status').innerHTML = 
+                `❌ Firebase initialization failed: ${error.message}`;
+        }
+    </script>
+</body>
+</html>

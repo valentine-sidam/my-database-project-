@@ -1,0 +1,38 @@
+{
+  "name": "my-database-project-",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "node server.js",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "csv-parser": "^3.2.0",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "firebase-admin": "^13.5.0",
+    "googleapis": "^161.0.0",
+    "mysql2": "^3.15.1",
+    "node-fetch": "^3.3.2",
+    "undici": "^7.16.0"
+  },
+  "employeeData": {
+    "total": 206,
+    "sampleIds": [
+      "100007",
+      "100013",
+      "100015"
+    ],
+    "sampleNames": [
+      "กมลลาศ วิชัยโย",
+      "อิทธิพล คำผงแดง",
+      "ปิยะ สุวรรณไตย"
+    ],
+    "additionalCount": 201
+  }
+}

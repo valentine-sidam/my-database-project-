@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Firebase Connection</title>
+</head>
+<body>
+    <h1>🔥 Test Firebase Connection</h1>
+    <div id="status">กำลังตรวจสอบ...</div>
+    <div id="employeeTest">
+        <h2>ทดสอบพนักงาน:</h2>
+        <input type="text" id="empInput" placeholder="พิมพ์ 100007">
+        <div id="empResult"></div>
+    </div>
+    <div id="toolTest">
+        <h2>ทดสอบเครื่องมือ:</h2>
+        <input type="text" id="toolInput" placeholder="พิมพ์ TTS">
+        <div id="toolResult"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCkw5r3iAb8AKF_kE_GV2WlExcWYDOPJiM",
+            authDomain: "my-database-project-343ae.firebaseapp.com",
+            projectId: "my-database-project-343ae",
+            storageBucket: "my-database-project-343ae.firebasestorage.app",
+            messagingSenderId: "945297983068",
+            appId: "1:945297983068:web:4d2ab8d26f10f6c9b8f21a"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let employees = [];
+        let tools = [];
+
+        async function testConnection() {
+            try {
+                // Test employees
+                const empSnapshot = await getDocs(collection(db, 'employees'));
+                empSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    employees.push({
+                        id: data.employee_id,
+                        name: data.full_name,
+                        dept: data.department,
+                        section: data.section
+                    });
+                });
+
+                // Test tools
+                const toolSnapshot = await getDocs(collection(db, 'tools'));
+                toolSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    tools.push({
+                        id: data.old_code || data.serial_no,
+                        name: data.tool_name,
+                        location: data.location
+                    });
+                });
+
+                document.getElementById('status').innerHTML = `
+                    ✅ เชื่อมต่อสำเร็จ!<br>
+                    👥 พนักงาน: ${employees.length} คน<br>
+                    🔧 เครื่องมือ: ${tools.length} รายการ
+                `;
+
+                setupTests();
+            } catch (error) {
+                document.getElementById('status').innerHTML = `❌ เกิดข้อผิดพลาด: ${error.message}`;
+            }
+        }
+
+        function setupTests() {
+            // Employee test
+            document.getElementById('empInput').addEventListener('input', function() {
+                const value = this.value;
+                const emp = employees.find(e => e.id === value);
+                if (emp) {
+                    document.getElementById('empResult').innerHTML = `
+                        ✅ พบ: ${emp.name}<br>
+                        🏢 หน่วย: ${emp.dept}<br>
+                        📍 โครงการ: ${emp.section}
+                    `;
+                } else if (value) {
+                    document.getElementById('empResult').innerHTML = '❌ ไม่พบพนักงาน';
+                } else {
+                    document.getElementById('empResult').innerHTML = '';
+                }
+            });
+
+            // Tool test
+            document.getElementById('toolInput').addEventListener('input', function() {
+                const value = this.value.toLowerCase();
+                const matchedTools = tools.filter(t => 
+                    t.id.toLowerCase().includes(value) || 
+                    t.name.toLowerCase().includes(value)
+                ).slice(0, 5);
+
+                if (matchedTools.length > 0) {
+                    document.getElementById('toolResult').innerHTML = 
+                        '✅ พบเครื่องมือ:<br>' + 
+                        matchedTools.map(t => `${t.id} - ${t.name}`).join('<br>');
+                } else if (value) {
+                    document.getElementById('toolResult').innerHTML = '❌ ไม่พบเครื่องมือ';
+                } else {
+                    document.getElementById('toolResult').innerHTML = '';
+                }
+            });
+        }
+
+        testConnection();
+    </script>
+</body>
+</html>
