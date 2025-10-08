@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Firebase Connection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        input {
+            padding: 10px;
+            width: 300px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔥 Firebase Connection Test</h1>
+    
+    <div id="status"></div>
+    
+    <div>
+        <h3>Test Employee Search:</h3>
+        <input type="text" id="employeeId" placeholder="Enter Employee ID (e.g., 100007)">
+        <button onclick="searchEmployee()">Search Employee</button>
+        <div id="employeeResult"></div>
+    </div>
+    
+    <div>
+        <h3>Test Tool Search:</h3>
+        <input type="text" id="toolSearch" placeholder="Enter tool name (e.g., TTS)">
+        <button onclick="searchTool()">Search Tool</button>
+        <div id="toolResult"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        const statusDiv = document.getElementById('status');
+        
+        function addStatus(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.innerHTML = message;
+            statusDiv.appendChild(div);
+            console.log(message);
+        }
+
+        try {
+            addStatus("🚀 เริ่มเชื่อมต่อ Firebase...");
+            
+            // Firebase config
+            const firebaseConfig = {
+                apiKey: "AIzaSyCkw5r3iAb8AKF_kE_GV2WlExcWYDOPJiM",
+                authDomain: "my-database-project-343ae.firebaseapp.com",
+                projectId: "my-database-project-343ae",
+                storageBucket: "my-database-project-343ae.firebasestorage.app",
+                messagingSenderId: "945297983068",
+                appId: "1:945297983068:web:4d2ab8d26f10f6c9b8f21a"
+            };
+
+            // Initialize Firebase
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+            
+            addStatus("✅ Firebase เชื่อมต่อสำเร็จ!", 'success');
+
+            // Make available globally
+            window.db = db;
+            window.firestore = { collection, getDocs, query, where };
+            
+            // Test data loading
+            await testDataLoading();
+            
+        } catch (error) {
+            addStatus(`❌ Firebase Error: ${error.message}`, 'error');
+            console.error("Firebase Error:", error);
+        }
+        
+        async function testDataLoading() {
+            try {
+                addStatus("📊 กำลังโหลดข้อมูลพนักงาน...");
+                const employeesCollection = collection(db, 'employees');
+                const employeesSnapshot = await getDocs(employeesCollection);
+                
+                let employeeCount = 0;
+                employeesSnapshot.forEach((doc) => {
+                    employeeCount++;
+                });
+                
+                addStatus(`✅ พบพนักงาน ${employeeCount} คน`, 'success');
+                
+                addStatus("🔧 กำลังโหลดข้อมูลเครื่องมือ...");
+                const toolsCollection = collection(db, 'tools');
+                const toolsSnapshot = await getDocs(toolsCollection);
+                
+                let toolCount = 0;
+                toolsSnapshot.forEach((doc) => {
+                    toolCount++;
+                });
+                
+                addStatus(`✅ พบเครื่องมือ ${toolCount} รายการ`, 'success');
+                
+            } catch (error) {
+                addStatus(`❌ Data Loading Error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Global search functions
+        window.searchEmployee = async function() {
+            const employeeId = document.getElementById('employeeId').value;
+            const resultDiv = document.getElementById('employeeResult');
+            
+            if (!employeeId) {
+                resultDiv.innerHTML = '<div class="status error">กรุณาใส่รหัสพนักงาน</div>';
+                return;
+            }
+            
+            try {
+                const employeesCollection = collection(window.db, 'employees');
+                const q = query(employeesCollection, where('employee_id', '==', employeeId));
+                const querySnapshot = await getDocs(q);
+                
+                if (querySnapshot.empty) {
+                    resultDiv.innerHTML = '<div class="status error">ไม่พบพนักงานรหัสนี้</div>';
+                } else {
+                    let html = '<div class="status success"><strong>พบพนักงาน:</strong><br>';
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        html += `รหัส: ${data.employee_id}<br>ชื่อ: ${data.full_name}<br>แผนก: ${data.department}<br>ส่วน: ${data.section}`;
+                    });
+                    html += '</div>';
+                    resultDiv.innerHTML = html;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="status error">Error: ${error.message}</div>`;
+            }
+        };
+        
+        window.searchTool = async function() {
+            const searchTerm = document.getElementById('toolSearch').value.toLowerCase();
+            const resultDiv = document.getElementById('toolResult');
+            
+            if (!searchTerm) {
+                resultDiv.innerHTML = '<div class="status error">กรุณาใส่ชื่อเครื่องมือที่ต้องการค้นหา</div>';
+                return;
+            }
+            
+            try {
+                const toolsCollection = collection(window.db, 'tools');
+                const querySnapshot = await getDocs(toolsCollection);
+                
+                let foundTools = [];
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if (data.tool_name && data.tool_name.toLowerCase().includes(searchTerm)) {
+                        foundTools.push(data);
+                    }
+                });
+                
+                if (foundTools.length === 0) {
+                    resultDiv.innerHTML = '<div class="status error">ไม่พบเครื่องมือที่ค้นหา</div>';
+                } else {
+                    let html = `<div class="status success"><strong>พบเครื่องมือ ${foundTools.length} รายการ:</strong><br>`;
+                    foundTools.slice(0, 5).forEach((tool) => {
+                        html += `• ${tool.tool_name} (รหัส: ${tool.tool_id})<br>`;
+                    });
+                    if (foundTools.length > 5) {
+                        html += `... และอีก ${foundTools.length - 5} รายการ`;
+                    }
+                    html += '</div>';
+                    resultDiv.innerHTML = html;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="status error">Error: ${error.message}</div>`;
+            }
+        };
+    </script>
+</body>
+</html>

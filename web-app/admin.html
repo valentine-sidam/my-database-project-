@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Tools Track</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f0f0;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: #666;
+        }
+
+        .dashboard-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .card h3 {
+            color: #4A90E2;
+            margin-bottom: 10px;
+        }
+
+        .card .number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .requests-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .requests-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #4A90E2;
+            padding-bottom: 10px;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: #4A90E2;
+            color: white;
+            border-color: #4A90E2;
+        }
+
+        .request-item {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: #fafafa;
+        }
+
+        .request-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .request-id {
+            font-weight: bold;
+            color: #4A90E2;
+        }
+
+        .status {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status.approved {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.rejected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .request-details {
+            margin-bottom: 15px;
+        }
+
+        .tools-list {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-approve {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-reject {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-view {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 600px;
+        }
+
+        .modal-header {
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .modal-footer {
+            border-top: 1px solid #ddd;
+            padding-top: 15px;
+            margin-top: 15px;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔧 Admin Dashboard - Tools Track</h1>
+        <p>ระบบจัดการคำขอเบิกเครื่องมือ</p>
+    </div>
+
+    <div class="dashboard-cards">
+        <div class="card">
+            <h3>คำขอรอดำเนินการ</h3>
+            <div class="number" id="pendingCount">-</div>
+        </div>
+        <div class="card">
+            <h3>อนุมัติแล้ว</h3>
+            <div class="number" id="approvedCount">-</div>
+        </div>
+        <div class="card">
+            <h3>ปฏิเสธ</h3>
+            <div class="number" id="rejectedCount">-</div>
+        </div>
+        <div class="card">
+            <h3>เครื่องมือที่ยืม</h3>
+            <div class="number" id="borrowedCount">-</div>
+        </div>
+    </div>
+
+    <div class="requests-section">
+        <h2>คำขอเบิกเครื่องมือ</h2>
+        
+        <div class="filter-tabs">
+            <div class="tab active" onclick="filterRequests('all')">ทั้งหมด</div>
+            <div class="tab" onclick="filterRequests('pending')">รอดำเนินการ</div>
+            <div class="tab" onclick="filterRequests('approved')">อนุมัติแล้ว</div>
+            <div class="tab" onclick="filterRequests('rejected')">ปฏิเสธ</div>
+        </div>
+
+        <div id="requestsList" class="loading">
+            กำลังโหลดข้อมูล...
+        </div>
+    </div>
+
+    <!-- Action Modal -->
+    <div id="actionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">ดำเนินการคำขอ</h3>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- จะแสดงรายละเอียดที่นี่ -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-approve" onclick="processRequest('approved')">อนุมัติ</button>
+                <button type="button" class="btn btn-reject" onclick="processRequest('rejected')">ปฏิเสธ</button>
+                <button type="button" class="btn" onclick="closeModal()" style="background: #6c757d; color: white;">ปิด</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Configuration -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, getDocs, query, where, doc, updateDoc, orderBy, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        try {
+            // Firebase config
+            const firebaseConfig = {
+                apiKey: "AIzaSyCkw5r3iAb8AKF_kE_GV2WlExcWYDOPJiM",
+                authDomain: "my-database-project-343ae.firebaseapp.com",
+                projectId: "my-database-project-343ae",
+                storageBucket: "my-database-project-343ae.firebasestorage.app",
+                messagingSenderId: "945297983068",
+                appId: "1:945297983068:web:4d2ab8d26f10f6c9b8f21a"
+            };
+
+            // Initialize Firebase
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+
+            // Make Firebase available globally
+            window.db = db;
+            window.firestore = { collection, getDocs, query, where, doc, updateDoc, orderBy, onSnapshot };
+
+            console.log("🔥 Firebase initialized successfully!");
+            
+            // Load dashboard data
+            loadDashboard();
+            
+        } catch (error) {
+            console.error("❌ Firebase initialization failed:", error);
+        }
+    </script>
+
+    <script>
+        let allRequests = [];
+        let currentFilter = 'all';
+        let selectedRequest = null;
+
+        // Load dashboard data
+        async function loadDashboard() {
+            try {
+                console.log('📊 กำลังโหลดข้อมูล Dashboard...');
+                
+                // Load requests with real-time updates
+                const requestsCollection = window.firestore.collection(window.db, 'tool_requests');
+                const q = window.firestore.query(requestsCollection, window.firestore.orderBy('request_date', 'desc'));
+                
+                window.firestore.onSnapshot(q, (snapshot) => {
+                    allRequests = [];
+                    snapshot.forEach((doc) => {
+                        allRequests.push({
+                            id: doc.id,
+                            ...doc.data()
+                        });
+                    });
+                    
+                    updateDashboardCards();
+                    displayRequests(currentFilter);
+                });
+                
+            } catch (error) {
+                console.error('❌ Error loading dashboard:', error);
+                document.getElementById('requestsList').innerHTML = `
+                    <div style="color: red; text-align: center; padding: 20px;">
+                        เกิดข้อผิดพลาดในการโหลดข้อมูล: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Update dashboard cards
+        function updateDashboardCards() {
+            const pending = allRequests.filter(r => r.status === 'pending').length;
+            const approved = allRequests.filter(r => r.status === 'approved').length;
+            const rejected = allRequests.filter(r => r.status === 'rejected').length;
+            const borrowed = allRequests.filter(r => r.status === 'approved' && !r.return_date).length;
+
+            document.getElementById('pendingCount').textContent = pending;
+            document.getElementById('approvedCount').textContent = approved;
+            document.getElementById('rejectedCount').textContent = rejected;
+            document.getElementById('borrowedCount').textContent = borrowed;
+        }
+
+        // Filter requests
+        function filterRequests(filter) {
+            currentFilter = filter;
+            
+            // Update active tab
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            displayRequests(filter);
+        }
+
+        // Display requests
+        function displayRequests(filter) {
+            let filteredRequests = allRequests;
+            
+            if (filter !== 'all') {
+                filteredRequests = allRequests.filter(request => request.status === filter);
+            }
+            
+            const requestsList = document.getElementById('requestsList');
+            
+            if (filteredRequests.length === 0) {
+                requestsList.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: #666;">
+                        ไม่พบคำขอในหมวดหมู่นี้
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            filteredRequests.forEach(request => {
+                const requestDate = request.request_date ? new Date(request.request_date.seconds * 1000) : new Date();
+                const toolsCount = request.tools ? request.tools.length : 0;
+                
+                html += `
+                    <div class="request-item">
+                        <div class="request-header">
+                            <span class="request-id">${request.request_id}</span>
+                            <span class="status ${request.status}">${getStatusText(request.status)}</span>
+                        </div>
+                        <div class="request-details">
+                            <strong>พนักงาน:</strong> ${request.employee_name} (${request.employee_id})<br>
+                            <strong>แผนก:</strong> ${request.department}<br>
+                            <strong>โครงการ:</strong> ${request.project_name}<br>
+                            <strong>วันที่ขอ:</strong> ${formatDate(requestDate)}<br>
+                            <strong>จำนวนเครื่องมือ:</strong> ${toolsCount} รายการ
+                        </div>
+                        ${request.tools && request.tools.length > 0 ? `
+                            <div class="tools-list">
+                                <strong>เครื่องมือที่ขอ:</strong><br>
+                                ${request.tools.map(tool => `• ${tool.tool_name} (จำนวน: ${tool.quantity})`).join('<br>')}
+                            </div>
+                        ` : ''}
+                        <div class="action-buttons">
+                            <button class="btn btn-view" onclick="viewRequest('${request.id}')">ดูรายละเอียด</button>
+                            ${request.status === 'pending' ? `
+                                <button class="btn btn-approve" onclick="showActionModal('${request.id}', 'approve')">อนุมัติ</button>
+                                <button class="btn btn-reject" onclick="showActionModal('${request.id}', 'reject')">ปฏิเสธ</button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            requestsList.innerHTML = html;
+        }
+
+        // Get status text
+        function getStatusText(status) {
+            switch(status) {
+                case 'pending': return 'รอดำเนินการ';
+                case 'approved': return 'อนุมัติแล้ว';
+                case 'rejected': return 'ปฏิเสธ';
+                default: return status;
+            }
+        }
+
+        // Format date
+        function formatDate(date) {
+            return new Intl.DateTimeFormat('th-TH', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            }).format(date);
+        }
+
+        // View request details
+        function viewRequest(requestId) {
+            const request = allRequests.find(r => r.id === requestId);
+            if (!request) return;
+            
+            selectedRequest = request;
+            document.getElementById('modalTitle').textContent = `รายละเอียดคำขอ ${request.request_id}`;
+            
+            const requestDate = request.request_date ? new Date(request.request_date.seconds * 1000) : new Date();
+            
+            document.getElementById('modalBody').innerHTML = `
+                <div style="margin-bottom: 15px;">
+                    <strong>รหัสคำขอ:</strong> ${request.request_id}<br>
+                    <strong>พนักงาน:</strong> ${request.employee_name} (${request.employee_id})<br>
+                    <strong>แผนก:</strong> ${request.department}<br>
+                    <strong>โครงการ:</strong> ${request.project_name}<br>
+                    <strong>วันที่ขอ:</strong> ${formatDate(requestDate)}<br>
+                    <strong>สถานะ:</strong> ${getStatusText(request.status)}
+                </div>
+                
+                <div>
+                    <strong>รายการเครื่องมือ:</strong>
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                        <thead>
+                            <tr style="background: #f8f9fa;">
+                                <th style="padding: 8px; border: 1px solid #ddd;">เครื่องมือ</th>
+                                <th style="padding: 8px; border: 1px solid #ddd;">จำนวน</th>
+                                <th style="padding: 8px; border: 1px solid #ddd;">หมายเหตุ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${request.tools ? request.tools.map(tool => `
+                                <tr>
+                                    <td style="padding: 8px; border: 1px solid #ddd;">${tool.tool_id} - ${tool.tool_name}</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;">${tool.quantity}</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;">${tool.note || '-'}</td>
+                                </tr>
+                            `).join('') : ''}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            // Hide approve/reject buttons if not pending
+            const approveBtn = document.querySelector('.btn-approve');
+            const rejectBtn = document.querySelector('.btn-reject');
+            if (request.status !== 'pending') {
+                approveBtn.style.display = 'none';
+                rejectBtn.style.display = 'none';
+            } else {
+                approveBtn.style.display = 'inline-block';
+                rejectBtn.style.display = 'inline-block';
+            }
+            
+            document.getElementById('actionModal').style.display = 'block';
+        }
+
+        // Show action modal
+        function showActionModal(requestId, action) {
+            viewRequest(requestId);
+        }
+
+        // Process request (approve/reject)
+        async function processRequest(action) {
+            if (!selectedRequest) return;
+            
+            try {
+                const requestRef = window.firestore.doc(window.db, 'tool_requests', selectedRequest.id);
+                
+                await window.firestore.updateDoc(requestRef, {
+                    status: action,
+                    approved_by: 'ADMIN001', // In real app, get from auth
+                    approved_date: new Date(),
+                    remarks: action === 'approved' ? 'อนุมัติโดยผู้ดูแลระบบ' : 'ปฏิเสธโดยผู้ดูแลระบบ'
+                });
+                
+                // Update tool status
+                if (selectedRequest.tools) {
+                    for (const tool of selectedRequest.tools) {
+                        const toolStatusRef = window.firestore.doc(window.db, 'tool_status', tool.tool_id);
+                        await window.firestore.updateDoc(toolStatusRef, {
+                            status: action === 'approved' ? 'borrowed' : 'available',
+                            last_updated: new Date(),
+                            borrowed_by: action === 'approved' ? selectedRequest.employee_id : null,
+                            borrowed_date: action === 'approved' ? new Date() : null
+                        });
+                    }
+                }
+                
+                alert(`${action === 'approved' ? 'อนุมัติ' : 'ปฏิเสธ'}คำขอเรียบร้อยแล้ว`);
+                closeModal();
+                
+            } catch (error) {
+                console.error('Error processing request:', error);
+                alert('เกิดข้อผิดพลาด: ' + error.message);
+            }
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('actionModal').style.display = 'none';
+            selectedRequest = null;
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('actionModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>

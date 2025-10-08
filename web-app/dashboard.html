@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tools Management System - ระบบจัดการเครื่องมือ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 25px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .header {
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 42px;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #888;
+        }
+
+        .systems-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 40px;
+        }
+
+        .system-card {
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 30px;
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .system-card:hover {
+            border-color: #667eea;
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.2);
+        }
+
+        .system-card .icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .system-card h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .system-card p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .system-card .target-user {
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .features-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 40px;
+        }
+
+        .features-section h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .feature-item {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid #667eea;
+        }
+
+        .feature-item .feature-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .feature-item h4 {
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .feature-item p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .status-section {
+            background: #e8f5e8;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 30px;
+            border-left: 5px solid #28a745;
+        }
+
+        .status-section h4 {
+            color: #155724;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .status-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .status-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #28a745;
+            display: block;
+        }
+
+        .status-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+                margin: 10px;
+            }
+
+            .header h1 {
+                font-size: 32px;
+            }
+
+            .systems-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .system-card {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 Tools Management System</h1>
+            <p>ระบบจัดการเครื่องมือแบบครบครัน</p>
+            <div class="subtitle">เชื่อมต่อกับ Firebase Database | สำหรับองค์กร</div>
+        </div>
+
+        <div class="systems-grid">
+            <!-- ระบบขอเบิกเครื่องมือ -->
+            <a href="/tools-request" class="system-card">
+                <span class="icon">📝</span>
+                <h3>ระบบขอเบิกเครื่องมือ</h3>
+                <p>สำหรับพนักงานขอเบิกเครื่องมือในการทำงาน พร้อมระบบติดตามและการอนุมัติ</p>
+                <span class="target-user">👷‍♂️ สำหรับพนักงานทั่วไป</span>
+            </a>
+
+            <!-- ระบบติดตามเครื่องมือ -->
+            <a href="/tools-track" class="system-card">
+                <span class="icon">📋</span>
+                <h3>Tools Track</h3>
+                <p>ระบบติดตามเครื่องมือสำหรับธุรการสโตว์ ลงข้อมูลการเบิก-คืน และการโอนเครื่องมือ</p>
+                <span class="target-user">📊 สำหรับธุรการสโตว์</span>
+            </a>
+
+            <!-- ระบบจัดการแอดมิน -->
+            <a href="/admin" class="system-card">
+                <span class="icon">⚙️</span>
+                <h3>ระบบจัดการแอดมิน</h3>
+                <p>จัดการข้อมูลพนักงาน เครื่องมือ และดูรายงานสถิติการใช้งานระบบ</p>
+                <span class="target-user">👨‍💼 สำหรับแอดมิน</span>
+            </a>
+        </div>
+
+        <!-- ฟีเจอร์หลัก -->
+        <div class="features-section">
+            <h3>✨ ฟีเจอร์หลักของระบบ</h3>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <span class="feature-icon">🔥</span>
+                    <h4>Firebase Database</h4>
+                    <p>ข้อมูลเรียลไทม์และปลอดภัย</p>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🔍</span>
+                    <h4>ค้นหาอัจฉริยะ</h4>
+                    <p>ค้นหาพนักงานและเครื่องมือได้ทันที</p>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">📊</span>
+                    <h4>รายงานสถิติ</h4>
+                    <p>ติดตามการใช้งานแบบเรียลไทม์</p>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">📱</span>
+                    <h4>Responsive Design</h4>
+                    <p>ใช้งานได้ทุกอุปกรณ์</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- สถิติระบบ -->
+        <div class="status-section">
+            <h4>📈 สถิติข้อมูลในระบบ</h4>
+            <div class="status-grid">
+                <div class="status-item">
+                    <span class="status-number" id="toolsCount">-</span>
+                    <div class="status-label">เครื่องมือทั้งหมด</div>
+                </div>
+                <div class="status-item">
+                    <span class="status-number" id="employeesCount">-</span>
+                    <div class="status-label">พนักงานในระบบ</div>
+                </div>
+                <div class="status-item">
+                    <span class="status-number" id="transactionsCount">-</span>
+                    <div class="status-label">รายการใช้งาน</div>
+                </div>
+                <div class="status-item">
+                    <span class="status-number" id="activeCount">-</span>
+                    <div class="status-label">กำลังใช้งาน</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Configuration -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyCkw5r3iAb8AKF_kE_GV2WlExcWYDOPJiM",
+            authDomain: "my-database-project-343ae.firebaseapp.com",
+            projectId: "my-database-project-343ae",
+            storageBucket: "my-database-project-343ae.firebasestorage.app",
+            messagingSenderId: "945297983068",
+            appId: "1:945297983068:web:4d2ab8d26f10f6c9b8f21a"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // โหลดสถิติข้อมูล
+        async function loadStatistics() {
+            try {
+                // นับจำนวนเครื่องมือ
+                const toolsSnapshot = await getDocs(collection(db, 'tools'));
+                document.getElementById('toolsCount').textContent = toolsSnapshot.size.toLocaleString();
+
+                // นับจำนวนพนักงาน
+                const employeesSnapshot = await getDocs(collection(db, 'employees'));
+                document.getElementById('employeesCount').textContent = employeesSnapshot.size.toLocaleString();
+
+                // นับจำนวนธุรกรรม (ถ้ามี collection transactions)
+                try {
+                    const transactionsSnapshot = await getDocs(collection(db, 'transactions'));
+                    document.getElementById('transactionsCount').textContent = transactionsSnapshot.size.toLocaleString();
+                } catch (e) {
+                    document.getElementById('transactionsCount').textContent = '0';
+                }
+
+                // คำนวณจำนวนเครื่องมือที่กำลังใช้งาน
+                const activeToolsQuery = query(collection(db, 'tools'), where('status', '==', 'กำลังใช้งาน'));
+                try {
+                    const activeSnapshot = await getDocs(activeToolsQuery);
+                    document.getElementById('activeCount').textContent = activeSnapshot.size.toLocaleString();
+                } catch (e) {
+                    // ถ้าไม่มี field status หรือ value ที่ต้องการ
+                    document.getElementById('activeCount').textContent = '-';
+                }
+
+                console.log('✅ โหลดสถิติข้อมูลเสร็จสิ้น');
+            } catch (error) {
+                console.error('❌ ไม่สามารถโหลดสถิติได้:', error);
+                // แสดงค่าเริ่มต้นเมื่อเกิดข้อผิดพลาด
+                document.getElementById('toolsCount').textContent = 'N/A';
+                document.getElementById('employeesCount').textContent = 'N/A';
+                document.getElementById('transactionsCount').textContent = 'N/A';
+                document.getElementById('activeCount').textContent = 'N/A';
+            }
+        }
+
+        // โหลดสถิติเมื่อหน้าโหลดเสร็จ
+        document.addEventListener('DOMContentLoaded', loadStatistics);
+    </script>
+</body>
+</html>
