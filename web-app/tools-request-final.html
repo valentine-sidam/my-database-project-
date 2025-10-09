@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tools Track - ระบบขอเบิกเครื่องมือ</title>
+    
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js';
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            getDocs, 
+            query, 
+            where, 
+            orderBy,
+            Timestamp 
+        } from 'https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js';
+        import { 
+            getAuth, 
+            signInWithPopup, 
+            GoogleAuthProvider, 
+            onAuthStateChanged,
+            signOut 
+        } from 'https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js';
+
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "your-api-key-here",
+            authDomain: "my-database-project.firebaseapp.com", 
+            projectId: "my-database-project",
+            storageBucket: "my-database-project.appspot.com",
+            messagingSenderId: "your-messaging-sender-id",
+            appId: "your-app-id-here"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        // Make Firebase available globally
+        window.db = db;
+        window.auth = auth;
+        window.provider = provider;
+        window.firebaseModules = {
+            collection,
+            addDoc,
+            getDocs,
+            query,
+            where,
+            orderBy,
+            Timestamp,
+            signInWithPopup,
+            onAuthStateChanged,
+            signOut
+        };
+
+        console.log('🔥 Firebase initialized successfully!');
+    </script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f0f0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: #f5f3e8;
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            border: 3px solid #333;
+            max-width: 700px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        /* Authentication Styles */
+        .auth-container {
+            text-align: center;
+            padding: 50px 20px;
+        }
+
+        .auth-button {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .auth-button:hover {
+            background: #357ae8;
+            transform: translateY(-2px);
+        }
+
+        .user-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .user-name {
+            font-weight: bold;
+            color: #2d5a2d;
+        }
+
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #4A90E2;
+            font-size: 16px;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #4A90E2;
+            border-radius: 10px;
+            font-size: 16px;
+            background: white;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #357abd;
+            box-shadow: 0 0 5px rgba(74, 144, 226, 0.3);
+        }
+
+        .employee-suggestions {
+            position: relative;
+        }
+
+        .suggestions-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #4A90E2;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+        }
+
+        .suggestion-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+
+        .suggestion-item:hover {
+            background: #f5f5f5;
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .employee-info {
+            background: rgba(74, 144, 226, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+            border-left: 4px solid #4A90E2;
+        }
+
+        .tools-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid #4A90E2;
+        }
+
+        .tools-section h3 {
+            color: #4A90E2;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #4A90E2;
+            padding-bottom: 5px;
+            font-size: 18px;
+        }
+
+        .tools-header {
+            display: grid;
+            grid-template-columns: 60px 2fr 100px 150px 80px;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .tool-item {
+            display: grid;
+            grid-template-columns: 60px 2fr 100px 150px 80px;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+            padding: 15px;
+            background: #fafafa;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+        }
+
+        .tool-item .no {
+            text-align: center;
+            font-weight: bold;
+            color: #4A90E2;
+        }
+
+        .tool-item select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .tool-item input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+        }
+
+        .btn-add, .btn-remove {
+            width: 30px;
+            height: 30px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-add {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-add:hover {
+            background: #218838;
+        }
+
+        .btn-remove {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-remove:hover {
+            background: #c82333;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: #666;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .submit-btn:hover {
+            background: #555;
+        }
+
+        .submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .modal-footer {
+            text-align: center;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .btn-confirm, .btn-cancel {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .btn-confirm {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-cancel {
+            background: #6c757d;
+            color: white;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4285f4;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 20px;
+            }
+
+            .tools-header, .tool-item {
+                grid-template-columns: 40px 2fr 80px 100px 60px;
+                gap: 5px;
+                font-size: 14px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="container">
+        <div class="header">
+            <h1>Tools Track</h1>
+            <p>กำลังโหลดระบบ...</p>
+        </div>
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- Authentication Screen -->
+    <div id="authScreen" class="container hidden">
+        <div class="header">
+            <h1>Tools Track</h1>
+            <p>ระบบขอเบิกเครื่องมือ</p>
+        </div>
+        
+        <div class="auth-container">
+            <h3>เข้าสู่ระบบ</h3>
+            <p style="margin: 20px 0;">กรุณาเข้าสู่ระบบด้วย Google Account เพื่อใช้งาน</p>
+            <button id="loginBtn" class="auth-button">
+                <svg width="18" height="18" viewBox="0 0 18 18">
+                    <path fill="#4285F4" d="M9,3.48c1.69,0,2.83,0.73,3.48,1.34l2.54-2.48C13.46,0.89,11.43,0,9,0C5.48,0,2.44,2.02,0.96,4.96l2.91,2.26C4.6,5.05,6.62,3.48,9,3.48z"/>
+                    <path fill="#34A853" d="M17.64,9.2c0-0.74-0.06-1.28-0.19-1.84H9v3.34h4.96c-0.21,1.14-0.88,2.06-1.26,2.13v1.76h3.06C16.93,13.07,17.64,11.53,17.64,9.2z"/>
+                    <path fill="#FBBC04" d="M3.88,10.78C3.58,9.92,3.58,8.08,3.88,7.22L0.96,4.96C0.35,6.18,0,7.55,0,9s0.35,2.82,0.96,4.04L3.88,10.78z"/>
+                    <path fill="#EA4335" d="M9,18c2.43,0,4.47-0.8,5.96-2.18l-3.06-1.76c-0.8,0.53-1.82,0.84-2.9,0.84c-2.38,0-4.4-1.57-5.12-3.74L0.96,13.04C2.44,15.98,5.48,18,9,18z"/>
+                </svg>
+                เข้าสู่ระบบด้วย Google
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="mainApp" class="container hidden">
+        <!-- User Info Bar -->
+        <div id="userInfo" class="user-info">
+            <span class="user-name" id="userName"></span>
+            <button id="logoutBtn" class="logout-btn">ออกจากระบบ</button>
+        </div>
+
+        <div class="header">
+            <h1>Tools Track</h1>
+            <p>ระบบขอเบิกเครื่องมือ</p>
+        </div>
+
+        <form id="toolRequestForm">
+            <!-- User ID Section -->
+            <div class="form-group">
+                <label for="employeeId">User ID (รหัสพนักงาน - ชื่อ):</label>
+                <div class="employee-suggestions">
+                    <input type="text" id="employeeId" name="employeeId" placeholder="กรอกรหัสพนักงาน" required autocomplete="off">
+                    <div id="suggestionsList" class="suggestions-list"></div>
+                </div>
+                <div id="employeeInfo" class="employee-info hidden">
+                    <strong>ข้อมูลพนักงาน:</strong> <span id="employeeName"></span><br>
+                    <strong>หน่วยงาน:</strong> <span id="employeeDept"></span>
+                </div>
+            </div>
+
+            <!-- Project Section -->
+            <div class="form-group">
+                <label for="project">Project (โครงการ):</label>
+                <input type="text" id="project" name="project" placeholder="โครงการจะขึ้นอัตโนมัติ" readonly>
+            </div>
+
+            <!-- Tools Section -->
+            <div class="tools-section">
+                <h3>List</h3>
+                
+                <!-- Header row -->
+                <div class="tools-header">
+                    <div>No</div>
+                    <div>Tool (เครื่องมือ)</div>
+                    <div>Unit</div>
+                    <div>Note</div>
+                    <div></div>
+                </div>
+                
+                <div id="toolsList">
+                    <div class="tool-item" data-index="1">
+                        <div class="no">1</div>
+                        <select class="tool-select" name="tool" required>
+                            <option value="">เลือกเครื่องมือ พิมพ์ชื่อเพื่อค้นหา</option>
+                        </select>
+                        <input type="number" name="unit" placeholder="จำนวน" min="1" required>
+                        <input type="text" name="note" placeholder="หมายเหตุ">
+                        <div class="btn-group">
+                            <button type="button" class="btn-add" onclick="addTool()" title="เพิ่มแถว">+</button>
+                            <button type="button" class="btn-remove" onclick="removeTool(this)" title="ลบแถว">×</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn">Submit</button>
+        </form>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>สรุปข้อมูลการขอเบิกเครื่องมือ</h2>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- จะแสดงข้อมูลสรุปที่นี่ -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-confirm" onclick="confirmSubmit()">ยืนยันข้อมูล</button>
+                <button type="button" class="btn-cancel" onclick="closeModal()">แก้ไขข้อมูล</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentUser = null;
+        let employeesData = [];
+        let toolsData = [];
+        let toolCount = 1;
+
+        // Initialize app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+
+        async function initializeApp() {
+            // Wait for Firebase modules to be available
+            let attempts = 0;
+            while (!window.firebaseModules && attempts < 50) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
+            }
+
+            if (!window.firebaseModules) {
+                console.error('Firebase modules not loaded');
+                return;
+            }
+
+            // Setup authentication listener
+            window.firebaseModules.onAuthStateChanged(window.auth, (user) => {
+                if (user) {
+                    currentUser = user;
+                    showMainApp();
+                    loadInitialData();
+                } else {
+                    showAuthScreen();
+                }
+                hideLoadingScreen();
+            });
+
+            // Setup event listeners
+            document.getElementById('loginBtn').addEventListener('click', signInWithGoogle);
+            document.getElementById('logoutBtn').addEventListener('click', signOutUser);
+            document.getElementById('toolRequestForm').addEventListener('submit', handleFormSubmit);
+        }
+
+        function hideLoadingScreen() {
+            document.getElementById('loadingScreen').classList.add('hidden');
+        }
+
+        function showAuthScreen() {
+            document.getElementById('authScreen').classList.remove('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+        }
+
+        function showMainApp() {
+            document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            document.getElementById('userName').textContent = currentUser.displayName;
+        }
+
+        async function signInWithGoogle() {
+            try {
+                await window.firebaseModules.signInWithPopup(window.auth, window.provider);
+            } catch (error) {
+                console.error('Login error:', error);
+                alert('เข้าสู่ระบบไม่สำเร็จ: ' + error.message);
+            }
+        }
+
+        async function signOutUser() {
+            try {
+                await window.firebaseModules.signOut(window.auth);
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        }
+
+        async function loadInitialData() {
+            try {
+                // Load employees data
+                await loadEmployeesData();
+                
+                // Load tools data  
+                await loadToolsData();
+                
+                // Setup event listeners
+                setupEmployeeSearch();
+                setupToolDropdowns();
+                
+                console.log('Initial data loaded successfully');
+            } catch (error) {
+                console.error('Error loading initial data:', error);
+            }
+        }
+
+        async function loadEmployeesData() {
+            try {
+                const employeesSnapshot = await window.firebaseModules.getDocs(
+                    window.firebaseModules.collection(window.db, 'employees')
+                );
+                
+                employeesData = [];
+                employeesSnapshot.forEach((doc) => {
+                    employeesData.push({ id: doc.id, ...doc.data() });
+                });
+                
+                console.log('Loaded employees:', employeesData.length);
+            } catch (error) {
+                console.error('Error loading employees:', error);
+                // Fallback to mock data for testing
+                employeesData = [
+                    {
+                        employee_id: "100007",
+                        full_name: "กมลลาศ วิชัยโย",
+                        department: "งานประกอบติดตั้ง",
+                        section: "PRANNOK-TADMAI (DH2)"
+                    },
+                    {
+                        employee_id: "100013",
+                        full_name: "ชัยชาญ สมบูรณ์",
+                        department: "งานประกอบติดตั้ง",
+                        section: "PRANNOK-TADMAI (DH2)"
+                    },
+                    {
+                        employee_id: "100015",
+                        full_name: "ปิยะ สุวรรณไตย",
+                        department: "งานประกอบติดตั้ง",
+                        section: "PRANNOK-TADMAI (DH2)"
+                    }
+                ];
+            }
+        }
+
+        async function loadToolsData() {
+            try {
+                const toolsSnapshot = await window.firebaseModules.getDocs(
+                    window.firebaseModules.collection(window.db, 'tools')
+                );
+                
+                toolsData = [];
+                toolsSnapshot.forEach((doc) => {
+                    toolsData.push({ id: doc.id, ...doc.data() });
+                });
+                
+                console.log('Loaded tools:', toolsData.length);
+                
+                // Update all tool dropdowns after loading data
+                updateAllToolDropdowns();
+                
+            } catch (error) {
+                console.error('Error loading tools:', error);
+                // Fallback to mock data for testing
+                toolsData = [
+                    {
+                        tool_name: "สว่านไฟฟ้า DEWALT",
+                        old_code: "T001",
+                        serial_no: "DCD996B",
+                        location: "ชั้น A-1"
+                    },
+                    {
+                        tool_name: "บิตสว่าน Set 20 ชิ้น",
+                        old_code: "T002", 
+                        serial_no: "DT7969",
+                        location: "ชั้น A-1"
+                    },
+                    {
+                        tool_name: "กบไฟฟ้า",
+                        old_code: "T003",
+                        serial_no: "DW680K",
+                        location: "ชั้น B-2"
+                    },
+                    {
+                        tool_name: "ลูกบิดพร้อมด้าม",
+                        old_code: "T004",
+                        serial_no: "SB001",
+                        location: "ชั้น C-1"
+                    },
+                    {
+                        tool_name: "ค้อนหงอน",
+                        old_code: "T005",
+                        serial_no: "HM001",
+                        location: "ชั้น C-2"
+                    }
+                ];
+                
+                // Update all tool dropdowns after loading fallback data
+                updateAllToolDropdowns();
+            }
+        }
+
+        function setupEmployeeSearch() {
+            const employeeInput = document.getElementById('employeeId');
+            const suggestionsList = document.getElementById('suggestionsList');
+            
+            employeeInput.addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                
+                if (query.length < 1) {
+                    suggestionsList.innerHTML = '';
+                    suggestionsList.style.display = 'none';
+                    document.getElementById('employeeInfo').classList.add('hidden');
+                    document.getElementById('project').value = '';
+                    return;
+                }
+                
+                const matches = employeesData.filter(emp => 
+                    emp.employee_id.toLowerCase().includes(query) || 
+                    emp.full_name.toLowerCase().includes(query)
+                ).slice(0, 5);
+                
+                if (matches.length > 0) {
+                    suggestionsList.innerHTML = matches.map(emp => `
+                        <div class="suggestion-item" onclick="selectEmployee('${emp.employee_id}')">
+                            ${emp.employee_id} - ${emp.full_name}
+                        </div>
+                    `).join('');
+                    suggestionsList.style.display = 'block';
+                } else {
+                    suggestionsList.style.display = 'none';
+                }
+            });
+
+            // Hide suggestions when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!employeeInput.contains(e.target) && !suggestionsList.contains(e.target)) {
+                    suggestionsList.style.display = 'none';
+                }
+            });
+        }
+
+        function selectEmployee(employeeId) {
+            const employee = employeesData.find(emp => emp.employee_id === employeeId);
+            if (employee) {
+                document.getElementById('employeeId').value = `${employee.employee_id} - ${employee.full_name}`;
+                document.getElementById('employeeName').textContent = employee.full_name;
+                document.getElementById('employeeDept').textContent = employee.department;
+                
+                // Auto-fill Project from section field
+                document.getElementById('project').value = employee.section || '';
+                
+                document.getElementById('employeeInfo').classList.remove('hidden');
+                document.getElementById('suggestionsList').style.display = 'none';
+            }
+        }
+
+        function setupToolDropdowns() {
+            updateAllToolDropdowns();
+        }
+
+        function updateAllToolDropdowns() {
+            const toolSelects = document.querySelectorAll('.tool-select');
+            
+            toolSelects.forEach(select => {
+                updateToolDropdown(select);
+                
+                // Add search functionality to each dropdown
+                select.addEventListener('keyup', function(e) {
+                    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'Enter') {
+                        filterToolOptions(this, this.value);
+                    }
+                });
+                
+                select.addEventListener('change', function() {
+                    // Reset filter when user selects an option
+                    updateToolDropdown(this);
+                });
+            });
+        }
+
+        function updateToolDropdown(selectElement) {
+            const currentValue = selectElement.value;
+            
+            // Clear existing options except first one
+            selectElement.innerHTML = '<option value="">เลือกเครื่องมือ พิมพ์ชื่อเพื่อค้นหา</option>';
+            
+            // Add all tools as options
+            toolsData.forEach(tool => {
+                const option = document.createElement('option');
+                option.value = JSON.stringify(tool);
+                option.textContent = `${tool.old_code || tool.serial_no} - ${tool.tool_name}`;
+                selectElement.appendChild(option);
+            });
+            
+            // Restore previous selection if it exists
+            if (currentValue) {
+                selectElement.value = currentValue;
+            }
+        }
+
+        function filterToolOptions(selectElement, searchText) {
+            const searchLower = searchText.toLowerCase();
+            const options = selectElement.querySelectorAll('option');
+            
+            options.forEach((option, index) => {
+                if (index === 0) return; // Skip first option
+                
+                const text = option.textContent.toLowerCase();
+                if (text.includes(searchLower)) {
+                    option.style.display = '';
+                } else {
+                    option.style.display = 'none';
+                }
+            });
+        }
+
+        function addTool() {
+            toolCount++;
+            const toolsList = document.getElementById('toolsList');
+            
+            const newToolItem = document.createElement('div');
+            newToolItem.className = 'tool-item';
+            newToolItem.dataset.index = toolCount;
+            
+            newToolItem.innerHTML = `
+                <div class="no">${toolCount}</div>
+                <select class="tool-select" name="tool" required>
+                    <option value="">เลือกเครื่องมือ พิมพ์ชื่อเพื่อค้นหา</option>
+                </select>
+                <input type="number" name="unit" placeholder="จำนวน" min="1" required>
+                <input type="text" name="note" placeholder="หมายเหตุ">
+                <div class="btn-group">
+                    <button type="button" class="btn-add" onclick="addTool()" title="เพิ่มแถว">+</button>
+                    <button type="button" class="btn-remove" onclick="removeTool(this)" title="ลบแถว">×</button>
+                </div>
+            `;
+            
+            toolsList.appendChild(newToolItem);
+            
+            // Update the new dropdown with tools data
+            const newSelect = newToolItem.querySelector('.tool-select');
+            updateToolDropdown(newSelect);
+            
+            // Add event listeners to the new dropdown
+            newSelect.addEventListener('keyup', function(e) {
+                if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'Enter') {
+                    filterToolOptions(this, this.value);
+                }
+            });
+            
+            newSelect.addEventListener('change', function() {
+                updateToolDropdown(this);
+            });
+        }
+
+        function removeTool(button) {
+            const toolItem = button.closest('.tool-item');
+            if (document.querySelectorAll('.tool-item').length > 1) {
+                toolItem.remove();
+                updateToolNumbers();
+            }
+        }
+
+        function updateToolNumbers() {
+            const toolItems = document.querySelectorAll('#toolsList .tool-item');
+            toolItems.forEach((item, index) => {
+                const noDiv = item.querySelector('.no');
+                noDiv.textContent = index + 1;
+                item.dataset.index = index + 1;
+            });
+            toolCount = toolItems.length;
+        }
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            showConfirmModal();
+        }
+
+        function showConfirmModal() {
+            const formData = new FormData(document.getElementById('toolRequestForm'));
+            const employeeId = formData.get('employeeId');
+            const project = formData.get('project');
+            
+            // Get selected employee info
+            const employee = employeesData.find(emp => 
+                employeeId.includes(emp.employee_id)
+            );
+            
+            // Get tool items
+            const toolItems = document.querySelectorAll('#toolsList .tool-item');
+            let toolsHTML = '';
+            let validTools = 0;
+            
+            toolItems.forEach((item, index) => {
+                const selectElement = item.querySelector('.tool-select');
+                const unitInput = item.querySelector('input[name="unit"]');
+                const noteInput = item.querySelector('input[name="note"]');
+                
+                if (selectElement.value && unitInput.value) {
+                    try {
+                        const toolData = JSON.parse(selectElement.value);
+                        const displayCode = toolData.old_code || toolData.serial_no || 'ไม่ระบุรหัส';
+                        
+                        toolsHTML += `
+                            <tr>
+                                <td style="padding: 8px; border: 1px solid #ddd;">${validTools + 1}</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">${displayCode} - ${toolData.tool_name}</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">${unitInput.value}</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">${noteInput.value || '-'}</td>
+                            </tr>
+                        `;
+                        validTools++;
+                    } catch (e) {
+                        console.error('Error parsing tool data:', e);
+                    }
+                }
+            });
+            
+            if (validTools === 0) {
+                alert('กรุณาเลือกเครื่องมืออย่างน้อย 1 รายการ');
+                return;
+            }
+            
+            const modalBody = document.getElementById('modalBody');
+            modalBody.innerHTML = `
+                <div style="margin-bottom: 15px;">
+                    <strong>พนักงาน:</strong> ${employee ? employee.full_name : employeeId}<br>
+                    <strong>หน่วยงาน:</strong> ${employee ? employee.department : '-'}<br>
+                    <strong>โครงการ:</strong> ${project}
+                </div>
+                
+                <div>
+                    <strong>รายการเครื่องมือที่ขอเบิก:</strong>
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                        <thead>
+                            <tr style="background: #f8f9fa;">
+                                <th style="padding: 8px; border: 1px solid #ddd;">No</th>
+                                <th style="padding: 8px; border: 1px solid #ddd;">เครื่องมือ</th>
+                                <th style="padding: 8px; border: 1px solid #ddd;">จำนวน</th>
+                                <th style="padding: 8px; border: 1px solid #ddd;">หมายเหตุ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${toolsHTML}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            document.getElementById('confirmModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('confirmModal').style.display = 'none';
+        }
+
+        async function confirmSubmit() {
+            try {
+                // Prepare request data
+                const formData = new FormData(document.getElementById('toolRequestForm'));
+                const employeeId = formData.get('employeeId');
+                const project = formData.get('project');
+                
+                const employee = employeesData.find(emp => 
+                    employeeId.includes(emp.employee_id)
+                );
+                
+                // Collect tools data
+                const toolItems = document.querySelectorAll('#toolsList .tool-item');
+                const tools = [];
+                
+                toolItems.forEach((item, index) => {
+                    const selectElement = item.querySelector('.tool-select');
+                    const unitInput = item.querySelector('input[name="unit"]');
+                    const noteInput = item.querySelector('input[name="note"]');
+                    
+                    if (selectElement.value && unitInput.value) {
+                        try {
+                            const toolData = JSON.parse(selectElement.value);
+                            tools.push({
+                                tool_id: toolData.id || toolData.old_code,
+                                tool_name: toolData.tool_name,
+                                old_code: toolData.old_code,
+                                serial_no: toolData.serial_no,
+                                quantity: parseInt(unitInput.value),
+                                note: noteInput.value || '',
+                                requested_date: new Date().toISOString().split('T')[0],
+                                return_date: null // Will be set by admin
+                            });
+                        } catch (e) {
+                            console.error('Error parsing tool data:', e);
+                        }
+                    }
+                });
+                
+                if (tools.length === 0) {
+                    alert('กรุณาเลือกเครื่องมืออย่างน้อย 1 รายการ');
+                    return;
+                }
+                
+                // Create request object
+                const requestData = {
+                    employee: {
+                        id: employee ? employee.employee_id : employeeId.split(' - ')[0],
+                        name: employee ? employee.full_name : employeeId,
+                        department: employee ? employee.department : '',
+                        section: employee ? employee.section : '',
+                        email: currentUser.email
+                    },
+                    project: project,
+                    tools: tools,
+                    reason: '', // Can be added later
+                    status: 'pending',
+                    requester_email: currentUser.email,
+                    requester_name: currentUser.displayName,
+                    created_at: window.firebaseModules.Timestamp.now(),
+                    updated_at: window.firebaseModules.Timestamp.now()
+                };
+                
+                // Save to Firebase
+                const docRef = await window.firebaseModules.addDoc(
+                    window.firebaseModules.collection(window.db, 'tool_requests'), 
+                    requestData
+                );
+                
+                console.log('Request submitted with ID:', docRef.id);
+                
+                alert('ส่งคำขอเบิกเครื่องมือเรียบร้อยแล้ว!\nรหัสคำขอ: ' + docRef.id);
+                closeModal();
+                resetForm();
+                
+            } catch (error) {
+                console.error('Error submitting request:', error);
+                alert('เกิดข้อผิดพลาดในการส่งคำขอ: ' + error.message);
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('toolRequestForm').reset();
+            document.getElementById('employeeInfo').classList.add('hidden');
+            
+            // Reset tools list to 1 item
+            const toolsList = document.getElementById('toolsList');
+            toolsList.innerHTML = `
+                <div class="tool-item" data-index="1">
+                    <div class="no">1</div>
+                    <select class="tool-select" name="tool" required>
+                        <option value="">เลือกเครื่องมือ พิมพ์ชื่อเพื่อค้นหา</option>
+                    </select>
+                    <input type="number" name="unit" placeholder="จำนวน" min="1" required>
+                    <input type="text" name="note" placeholder="หมายเหตุ">
+                    <div class="btn-group">
+                        <button type="button" class="btn-add" onclick="addTool()" title="เพิ่มแถว">+</button>
+                        <button type="button" class="btn-remove" onclick="removeTool(this)" title="ลบแถว">×</button>
+                    </div>
+                </div>
+            `;
+            toolCount = 1;
+            updateAllToolDropdowns();
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('confirmModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>
