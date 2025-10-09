@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tools Track - ติดตามสถานะการขอเบิก (Demo)</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            max-width: 1000px;
+            width: 100%;
+            min-height: 600px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .demo-notice {
+            background: #d4edda;
+            border: 2px solid #c3e6cb;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .demo-notice h3 {
+            color: #155724;
+            margin-bottom: 5px;
+        }
+
+        .demo-notice p {
+            color: #155724;
+            font-size: 14px;
+        }
+
+        .user-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #007bff;
+        }
+
+        .user-info h3 {
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+
+        .filter-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .filter-group input, .filter-group select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .btn-filter {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            height: fit-content;
+        }
+
+        .btn-filter:hover {
+            background: #0056b3;
+        }
+
+        .requests-table {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .table-header {
+            background: #007bff;
+            color: white;
+            padding: 15px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .table-content {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .request-item {
+            border-bottom: 1px solid #eee;
+            padding: 20px;
+            transition: background-color 0.3s;
+        }
+
+        .request-item:hover {
+            background: #f8f9fa;
+        }
+
+        .request-item:last-child {
+            border-bottom: none;
+        }
+
+        .request-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .request-id {
+            font-weight: bold;
+            color: #007bff;
+            font-size: 16px;
+        }
+
+        .request-status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-approved {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-rejected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-completed {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .request-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .request-info div {
+            color: #666;
+        }
+
+        .request-info strong {
+            color: #333;
+        }
+
+        .tools-list {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .tools-list h4 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .tool-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #ddd;
+            font-size: 13px;
+        }
+
+        .tool-item:last-child {
+            border-bottom: none;
+        }
+
+        .tool-name {
+            flex: 1;
+            color: #333;
+        }
+
+        .tool-quantity {
+            color: #666;
+            margin-left: 10px;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .actions {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .btn-new-request {
+            padding: 12px 25px;
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            display: inline-block;
+            transition: background-color 0.3s;
+        }
+
+        .btn-new-request:hover {
+            background: #218838;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 20px;
+            }
+
+            .filter-row {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .request-info {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .request-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛠️ Tools Track</h1>
+            <p>ติดตามสถานะการขอเบิกเครื่องมือ</p>
+        </div>
+
+        <!-- Demo Notice -->
+        <div class="demo-notice">
+            <h3>🔥 Demo Version - ใช้ Mock Data</h3>
+            <p>เวอร์ชันนี้ใช้ข้อมูลจำลองเพื่อแสดงการทำงานของระบบ (ยังไม่เชื่อมต่อ Firebase จริง)</p>
+        </div>
+
+        <!-- User Info -->
+        <div class="user-info">
+            <h3>👤 ข้อมูลผู้ใช้</h3>
+            <p><strong>ชื่อ:</strong> กมลลาศ วิชัยโย</p>
+            <p><strong>รหัสพนักงาน:</strong> 100007</p>
+            <p><strong>หน่วยงาน:</strong> งานประกอบติดตั้ง</p>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label>วันที่เริ่ม:</label>
+                    <input type="date" id="startDate">
+                </div>
+                <div class="filter-group">
+                    <label>วันที่สิ้นสุด:</label>
+                    <input type="date" id="endDate">
+                </div>
+                <div class="filter-group">
+                    <label>สถานะ:</label>
+                    <select id="statusFilter">
+                        <option value="">ทั้งหมด</option>
+                        <option value="pending">รอดำเนินการ</option>
+                        <option value="approved">อนุมัติแล้ว</option>
+                        <option value="completed">เสร็จสิ้น</option>
+                        <option value="rejected">ปฏิเสธ</option>
+                    </select>
+                </div>
+                <button class="btn-filter" onclick="filterRequests()">🔍 ค้นหา</button>
+            </div>
+        </div>
+
+        <!-- Requests Table -->
+        <div class="requests-table">
+            <div class="table-header">
+                📋 ประวัติการขอเบิกเครื่องมือ
+            </div>
+            <div class="table-content" id="requestsContainer">
+                <!-- จะแสดงข้อมูลที่นี่ -->
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="actions">
+            <a href="tools-request-demo.html" class="btn-new-request">
+                ➕ สร้างคำขอใหม่
+            </a>
+        </div>
+
+        <!-- Test Link Section -->
+        <div class="test-link" style="margin-top: 30px; text-align: center;">
+            <a href="https://glorious-memory-5g7qwj5pr4wj34q96-3000.app.github.dev/tools-track-demo.html" target="_blank" style="display: inline-block; padding: 12px 25px; background: #007bff; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; transition: background-color 0.3s;">
+                🔗 ลิงก์ไปยังแบบฟอร์มคำขอเบิกเครื่องมือ
+            </a>
+            <div style="margin-top: 10px; color: #666; font-size: 14px;">
+                📝 ขั้นตอนทดสอบ:<br>
+                1. พิมพ์ User ID: "100007" <br>
+                2. เลือกเครื่องมือ: "สว่าน" <br>
+                3. กรอกจำนวน: "1" <br>
+                4. กด Submit
+            </div>
+            <div style="margin-top: 10px; color: #666; font-size: 14px;">
+                📊 จะเห็น:<br>
+                - ข้อมูลผู้ใช้<br>
+                - ประวัติคำขอ 4 รายการ<br>
+                - สถานะต่างๆ: รอดำเนินการ, อนุมัติ, เสร็จสิ้น, ปฏิเสธ<br>
+                - ระบบกรองข้อมูล
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock Data - จำลองข้อมูลประวัติการขอเบิก
+        const requestsData = [
+            {
+                id: "REQ001",
+                employeeId: "100007",
+                employeeName: "กมลลาศ วิชัยโย",
+                project: "PRANNOK-TADMAI (DH2)",
+                requestDate: "2024-10-01",
+                status: "completed",
+                tools: [
+                    { name: "สว่านไฟฟ้า DEWALT", code: "T001", quantity: 1, note: "งานติดตั้ง" },
+                    { name: "บิตสว่าน Set 20 ชิ้น", code: "T002", quantity: 1, note: "" }
+                ],
+                approvedBy: "ผู้จัดการ A",
+                completedDate: "2024-10-02"
+            },
+            {
+                id: "REQ002", 
+                employeeId: "100007",
+                employeeName: "กมลลาศ วิชัยโย",
+                project: "PRANNOK-TADMAI (DH2)",
+                requestDate: "2024-10-05",
+                status: "approved",
+                tools: [
+                    { name: "กบไฟฟ้า", code: "T003", quantity: 1, note: "งานเจาะไม้" }
+                ],
+                approvedBy: "ผู้จัดการ B",
+                approvedDate: "2024-10-06"
+            },
+            {
+                id: "REQ003",
+                employeeId: "100007", 
+                employeeName: "กมลลาศ วิชัยโย",
+                project: "PRANNOK-TADMAI (DH2)",
+                requestDate: "2024-10-08",
+                status: "pending",
+                tools: [
+                    { name: "ลูกบิดพร้อมด้าม", code: "T004", quantity: 2, note: "" },
+                    { name: "ค้อนหงอน", code: "T005", quantity: 1, note: "งานประกอบ" }
+                ]
+            },
+            {
+                id: "REQ004",
+                employeeId: "100013",
+                employeeName: "ชัยชาญ สมบูรณ์", 
+                project: "PRANNOK-TADMAI (DH2)",
+                requestDate: "2024-10-07",
+                status: "rejected",
+                tools: [
+                    { name: "เลื่อยวงเดือน", code: "T006", quantity: 1, note: "งานตัดไม้" }
+                ],
+                rejectedBy: "ผู้จัดการ A",
+                rejectedReason: "เครื่องมือไม่พร้อมใช้งาน",
+                rejectedDate: "2024-10-07"
+            }
+        ];
+
+        let filteredRequests = [...requestsData];
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 เริ่มต้นระบบติดตาม Demo');
+            console.log('📋 โหลดข้อมูลคำขอ:', requestsData.length, 'รายการ');
+            
+            // Set default date range (last 30 days)
+            const today = new Date();
+            const thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+            
+            document.getElementById('startDate').value = thirtyDaysAgo.toISOString().split('T')[0];
+            document.getElementById('endDate').value = today.toISOString().split('T')[0];
+            
+            displayRequests(requestsData);
+        });
+
+        function displayRequests(requests) {
+            const container = document.getElementById('requestsContainer');
+            
+            if (requests.length === 0) {
+                container.innerHTML = `
+                    <div class="no-data">
+                        📭 ไม่พบข้อมูลคำขอเบิกเครื่องมือในช่วงเวลาที่เลือก
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = requests.map(request => `
+                <div class="request-item">
+                    <div class="request-header">
+                        <div class="request-id">📋 ${request.id}</div>
+                        <div class="request-status ${getStatusClass(request.status)}">
+                            ${getStatusText(request.status)}
+                        </div>
+                    </div>
+                    
+                    <div class="request-info">
+                        <div><strong>วันที่ขอ:</strong> ${formatDate(request.requestDate)}</div>
+                        <div><strong>ผู้ขอ:</strong> ${request.employeeName}</div>
+                        <div><strong>โครงการ:</strong> ${request.project}</div>
+                    </div>
+
+                    ${getStatusDetails(request)}
+                    
+                    <div class="tools-list">
+                        <h4>🔧 รายการเครื่องมือ:</h4>
+                        ${request.tools.map(tool => `
+                            <div class="tool-item">
+                                <span class="tool-name">${tool.code} - ${tool.name}</span>
+                                <span class="tool-quantity">จำนวน: ${tool.quantity}</span>
+                            </div>
+                            ${tool.note ? `<div style="font-size: 12px; color: #666; margin-left: 10px;">หมายเหตุ: ${tool.note}</div>` : ''}
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getStatusClass(status) {
+            const statusClasses = {
+                'pending': 'status-pending',
+                'approved': 'status-approved', 
+                'completed': 'status-completed',
+                'rejected': 'status-rejected'
+            };
+            return statusClasses[status] || 'status-pending';
+        }
+
+        function getStatusText(status) {
+            const statusTexts = {
+                'pending': 'รอดำเนินการ',
+                'approved': 'อนุมัติแล้ว',
+                'completed': 'เสร็จสิ้น',
+                'rejected': 'ปฏิเสธ'
+            };
+            return statusTexts[status] || 'ไม่ทราบสถานะ';
+        }
+
+        function getStatusDetails(request) {
+            switch(request.status) {
+                case 'approved':
+                    return `
+                        <div style="background: #d4edda; padding: 10px; border-radius: 5px; margin: 10px 0; font-size: 14px;">
+                            ✅ <strong>อนุมัติโดย:</strong> ${request.approvedBy} 
+                            <strong>เมื่อ:</strong> ${formatDate(request.approvedDate)}
+                        </div>
+                    `;
+                case 'completed':
+                    return `
+                        <div style="background: #cce5ff; padding: 10px; border-radius: 5px; margin: 10px 0; font-size: 14px;">
+                            ✅ <strong>อนุมัติโดย:</strong> ${request.approvedBy}<br>
+                            🎉 <strong>เสร็จสิ้นเมื่อ:</strong> ${formatDate(request.completedDate)}
+                        </div>
+                    `;
+                case 'rejected':
+                    return `
+                        <div style="background: #f8d7da; padding: 10px; border-radius: 5px; margin: 10px 0; font-size: 14px;">
+                            ❌ <strong>ปฏิเสธโดย:</strong> ${request.rejectedBy} 
+                            <strong>เมื่อ:</strong> ${formatDate(request.rejectedDate)}<br>
+                            <strong>เหตุผล:</strong> ${request.rejectedReason}
+                        </div>
+                    `;
+                case 'pending':
+                default:
+                    return `
+                        <div style="background: #fff3cd; padding: 10px; border-radius: 5px; margin: 10px 0; font-size: 14px;">
+                            ⏳ <strong>สถานะ:</strong> รอดำเนินการโดยผู้จัดการ
+                        </div>
+                    `;
+            }
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('th-TH', {
+                year: 'numeric',
+                month: 'long', 
+                day: 'numeric'
+            });
+        }
+
+        function filterRequests() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const status = document.getElementById('statusFilter').value;
+
+            let filtered = [...requestsData];
+
+            // Filter by date range
+            if (startDate) {
+                filtered = filtered.filter(req => req.requestDate >= startDate);
+            }
+            if (endDate) {
+                filtered = filtered.filter(req => req.requestDate <= endDate);
+            }
+
+            // Filter by status
+            if (status) {
+                filtered = filtered.filter(req => req.status === status);
+            }
+
+            filteredRequests = filtered;
+            displayRequests(filtered);
+            
+            console.log('🔍 กรองข้อมูล:', filtered.length, 'รายการ');
+        }
+    </script>
+</body>
+</html>

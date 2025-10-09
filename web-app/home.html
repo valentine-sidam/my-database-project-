@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tools Track - ระบบจัดการเครื่องมือ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .header {
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .version-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .version-card {
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .demo-version {
+            background: #d4edda;
+            border: 3px solid #28a745;
+        }
+
+        .demo-version h3 {
+            color: #155724;
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+
+        .demo-version p {
+            color: #155724;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .firebase-version {
+            background: #f8d7da;
+            border: 3px solid #dc3545;
+        }
+
+        .firebase-version h3 {
+            color: #721c24;
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+
+        .firebase-version p {
+            color: #721c24;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .menu-item {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 25px 20px;
+            text-decoration: none;
+            color: #333;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .menu-item:hover {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,123,255,0.3);
+        }
+
+        .menu-item.demo {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+
+        .menu-item.demo:hover {
+            background: #28a745;
+        }
+
+        .menu-item.firebase {
+            background: #f8d7da;
+            border-color: #dc3545;
+            opacity: 0.7;
+        }
+
+        .menu-item.firebase:hover {
+            background: #dc3545;
+            opacity: 1;
+        }
+
+        .menu-item .icon {
+            font-size: 40px;
+        }
+
+        .menu-item h3 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .menu-item p {
+            font-size: 13px;
+            opacity: 0.8;
+            text-align: center;
+        }
+
+        .version-badge {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .badge-demo {
+            background: #28a745;
+            color: white;
+        }
+
+        .badge-firebase {
+            background: #dc3545;
+            color: white;
+        }
+
+        .footer {
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            .header h1 {
+                font-size: 28px;
+            }
+
+            .version-section,
+            .menu-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .menu-item {
+                padding: 20px 15px;
+            }
+
+            .menu-item .icon {
+                font-size: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛠️ Tools Track</h1>
+            <p>ระบบจัดการเครื่องมือ</p>
+        </div>
+
+        <!-- Version Information -->
+        <div class="version-section">
+            <div class="version-card demo-version">
+                <h3>✅ Demo Version</h3>
+                <p>✨ พร้อมใช้งานทันที!<br>
+                ใช้ข้อมูลจำลองเพื่อทดสอบระบบ<br>
+                ไม่ต้องตั้งค่า Firebase</p>
+            </div>
+            
+            <div class="version-card firebase-version">
+                <h3>🔧 Firebase Version</h3>
+                <p>⚠️ ต้องตั้งค่าก่อนใช้งาน<br>
+                ต้องมี Firebase Config จริง<br>
+                และข้อมูลใน Database</p>
+            </div>
+        </div>
+
+        <!-- Menu Grid -->
+        <div class="menu-grid">
+            <!-- Demo Versions -->
+            <a href="tools-request-demo.html" class="menu-item demo">
+                <div class="icon">📋</div>
+                <span class="version-badge badge-demo">Demo</span>
+                <h3>ขอเบิกเครื่องมือ</h3>
+                <p>สร้างคำขอเบิกเครื่องมือใหม่<br>พร้อมทดสอบทันที</p>
+            </a>
+
+            <a href="tools-track-demo.html" class="menu-item demo">
+                <div class="icon">📊</div>
+                <span class="version-badge badge-demo">Demo</span>
+                <h3>ติดตามสถานะ</h3>
+                <p>ตรวจสอบสถานะคำขอ<br>ดูประวัติการเบิกจ่าย</p>
+            </a>
+
+            <!-- Firebase Versions -->
+            <a href="tools-request-final.html" class="menu-item firebase" title="ต้องตั้งค่า Firebase ก่อน">
+                <div class="icon">🔥</div>
+                <span class="version-badge badge-firebase">Firebase</span>
+                <h3>ขอเบิก (Firebase)</h3>
+                <p>เชื่อมต่อฐานข้อมูลจริง<br>ต้องตั้งค่า Config</p>
+            </a>
+
+            <a href="tools-track-v2.html" class="menu-item firebase" title="ต้องตั้งค่า Firebase ก่อน">
+                <div class="icon">🔥</div>
+                <span class="version-badge badge-firebase">Firebase</span>
+                <h3>ติดตาม (Firebase)</h3>
+                <p>ต้องเข้าสู่ระบบ<br>และตั้งค่า Firebase</p>
+            </a>
+        </div>
+
+        <div class="footer">
+            <p><strong>🎯 แนะนำ:</strong> เริ่มจาก Demo Version เพื่อทดสอบระบบ</p>
+            <p>Tools Track System v2.0 - October 2024</p>
+        </div>
+    </div>
+
+    <script>
+        // Add click handler for Firebase versions
+        document.querySelectorAll('.menu-item.firebase').forEach(item => {
+            item.addEventListener('click', function(e) {
+                if (!confirm('⚠️ Firebase Version ต้องตั้งค่า Firebase Configuration ก่อนใช้งาน\n\nต้องการดำเนินการต่อหรือไม่?')) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
