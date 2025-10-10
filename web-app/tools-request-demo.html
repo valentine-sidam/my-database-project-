@@ -162,7 +162,7 @@
 
         .tools-header {
             display: grid;
-            grid-template-columns: 60px 2fr 100px 150px 80px;
+            grid-template-columns: 60px 4fr 80px 180px 80px;
             gap: 10px;
             margin-bottom: 15px;
             align-items: center;
@@ -175,7 +175,7 @@
 
         .tool-item {
             display: grid;
-            grid-template-columns: 60px 2fr 100px 150px 80px;
+            grid-template-columns: 60px 4fr 80px 180px 80px;
             gap: 10px;
             margin-bottom: 15px;
             align-items: center;
@@ -227,12 +227,12 @@
         }
 
         .btn-add {
-            background: #28a745;
+            background: #4A90E2;
             color: white;
         }
 
         .btn-add:hover {
-            background: #218838;
+            background: #357abd;
         }
 
         .btn-remove {
@@ -283,7 +283,7 @@
             padding: 30px;
             border-radius: 15px;
             width: 90%;
-            max-width: 600px;
+            max-width: 800px;
             max-height: 80vh;
             overflow-y: auto;
         }
@@ -312,13 +312,39 @@
         }
 
         .btn-confirm {
-            background: #28a745;
+            background: #4A90E2;
             color: white;
+        }
+
+        .btn-confirm:hover {
+            background: #357abd;
         }
 
         .btn-cancel {
             background: #6c757d;
             color: white;
+        }
+
+        /* Modal table responsive */
+        .modal-content table {
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .modal-content {
+                width: 95%;
+                padding: 15px;
+                margin: 2% auto;
+            }
+            
+            .modal-content table {
+                font-size: 12px;
+            }
+            
+            .modal-content th,
+            .modal-content td {
+                padding: 5px !important;
+            }
         }
 
         .hidden {
@@ -333,7 +359,7 @@
             }
 
             .tools-header, .tool-item {
-                grid-template-columns: 40px 2fr 80px 100px 60px;
+                grid-template-columns: 40px 3fr 70px 120px 60px;
                 gap: 5px;
                 font-size: 14px;
             }
@@ -388,8 +414,8 @@
                 <div class="tools-header">
                     <div>No</div>
                     <div>Tool (เครื่องมือ)</div>
-                    <div>Unit</div>
-                    <div>Note</div>
+                    <div>Unit (จำนวน)</div>
+                    <div>Note (หมายเหตุ)</div>
                     <div></div>
                 </div>
                 
@@ -755,9 +781,9 @@
                         
                         toolsHTML += `
                             <tr>
-                                <td style="padding: 8px; border: 1px solid #ddd;">${validTools + 1}</td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">${displayCode} - ${toolData.tool_name}</td>
-                                <td style="padding: 8px; border: 1px solid #ddd;">${unitInput.value}</td>
+                                <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${validTools + 1}</td>
+                                <td style="padding: 8px; border: 1px solid #ddd; word-wrap: break-word;">${displayCode} - ${toolData.tool_name}</td>
+                                <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${unitInput.value}</td>
                                 <td style="padding: 8px; border: 1px solid #ddd;">${noteInput.value || '-'}</td>
                             </tr>
                         `;
@@ -786,10 +812,10 @@
                     <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
                         <thead>
                             <tr style="background: #f8f9fa;">
-                                <th style="padding: 8px; border: 1px solid #ddd;">No</th>
-                                <th style="padding: 8px; border: 1px solid #ddd;">เครื่องมือ</th>
-                                <th style="padding: 8px; border: 1px solid #ddd;">จำนวน</th>
-                                <th style="padding: 8px; border: 1px solid #ddd;">หมายเหตุ</th>
+                                <th style="padding: 8px; border: 1px solid #ddd; width: 8%;">No</th>
+                                <th style="padding: 8px; border: 1px solid #ddd; width: 50%;">เครื่องมือ</th>
+                                <th style="padding: 8px; border: 1px solid #ddd; width: 12%;">จำนวน</th>
+                                <th style="padding: 8px; border: 1px solid #ddd; width: 30%;">หมายเหตุ</th>
                             </tr>
                         </thead>
                         <tbody>

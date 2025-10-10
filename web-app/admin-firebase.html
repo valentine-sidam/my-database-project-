@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Management - ระบบจัดการผู้ดูแลระบบ (Firebase)</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f0f0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #f5f3e8;
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            border: 3px solid #333;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 18px;
+        }
+
+        .firebase-notice {
+            background: #d1ecf1;
+            border: 2px solid #bee5eb;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .firebase-notice h3 {
+            color: #0c5460;
+            margin-bottom: 5px;
+        }
+
+        .firebase-notice p {
+            color: #0c5460;
+            font-size: 14px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 18px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid #4A90E2;
+            text-align: center;
+        }
+
+        .dashboard-card h3 {
+            color: #4A90E2;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .dashboard-number {
+            font-size: 48px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .dashboard-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .tabs-container {
+            background: white;
+            border-radius: 15px;
+            border: 2px solid #4A90E2;
+            overflow: hidden;
+        }
+
+        .tabs-header {
+            display: flex;
+            background: #4A90E2;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 15px 20px;
+            background: transparent;
+            border: none;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .tab-button.active {
+            background: white;
+            color: #4A90E2;
+        }
+
+        .tab-button:hover:not(.active) {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .tab-content {
+            padding: 25px;
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .data-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #333;
+            position: sticky;
+            top: 0;
+        }
+
+        .data-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-approved {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-completed {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .status-rejected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-approve {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-reject {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-complete {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-view {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+        }
+
+        .search-filter {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-filter input,
+        .search-filter select {
+            padding: 8px 12px;
+            border: 2px solid #4A90E2;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .search-filter button {
+            padding: 8px 16px;
+            background: #4A90E2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4A90E2;
+        }
+
+        .modal-header h3 {
+            color: #4A90E2;
+            margin: 0;
+        }
+
+        .modal-footer {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+            text-align: right;
+        }
+
+        .modal-footer button {
+            margin-left: 10px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background: #4A90E2;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs-header {
+                flex-direction: column;
+            }
+
+            .search-filter {
+                flex-direction: column;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚙️ Admin Management</h1>
+            <p>ระบบจัดการผู้ดูแลระบบ (Firebase)</p>
+        </div>
+
+        <div class="firebase-notice">
+            <h3>🔥 เชื่อมต่อกับ Firebase</h3>
+            <p>ระบบจัดการข้อมูลและการอนุมัติจาก Firebase Database แบบ Real-time</p>
+        </div>
+
+        <div id="loadingIndicator" class="loading">
+            <div>🔄 กำลังโหลดข้อมูลจาก Firebase...</div>
+        </div>
+
+        <div id="mainContent" style="display: none;">
+            <!-- Dashboard Cards -->
+            <div class="dashboard-grid" id="dashboardStats">
+                <!-- สถิติจะแสดงที่นี่ -->
+            </div>
+
+            <!-- Tabs Container -->
+            <div class="tabs-container">
+                <div class="tabs-header">
+                    <button class="tab-button active" onclick="showTab('requests')">📋 จัดการคำขอ</button>
+                    <button class="tab-button" onclick="showTab('employees')">👥 จัดการพนักงาน</button>
+                    <button class="tab-button" onclick="showTab('tools')">🔧 จัดการเครื่องมือ</button>
+                    <button class="tab-button" onclick="showTab('reports')">📊 รายงาน</button>
+                </div>
+
+                <!-- Requests Management Tab -->
+                <div id="requestsTab" class="tab-content active">
+                    <h3>📋 จัดการคำขอเบิกเครื่องมือ</h3>
+                    
+                    <div class="search-filter">
+                        <input type="text" id="requestSearch" placeholder="ค้นหาคำขอ...">
+                        <select id="requestStatusFilter">
+                            <option value="">ทุกสถานะ</option>
+                            <option value="pending">รอดำเนินการ</option>
+                            <option value="approved">อนุมัติแล้ว</option>
+                            <option value="completed">เสร็จสิ้น</option>
+                            <option value="rejected">ปฏิเสธ</option>
+                        </select>
+                        <button onclick="filterRequests()">🔍 ค้นหา</button>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>วันที่ขอ</th>
+                                    <th>ผู้ขอ</th>
+                                    <th>หน่วยงาน</th>
+                                    <th>เครื่องมือ</th>
+                                    <th>สถานะ</th>
+                                    <th>การดำเนินการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="requestsTableBody">
+                                <!-- ข้อมูลจะแสดงที่นี่ -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Employees Management Tab -->
+                <div id="employeesTab" class="tab-content">
+                    <h3>👥 จัดการข้อมูลพนักงาน</h3>
+                    
+                    <div class="search-filter">
+                        <input type="text" id="employeeSearch" placeholder="ค้นหาพนักงาน...">
+                        <select id="departmentFilter">
+                            <option value="">ทุกหน่วยงาน</option>
+                        </select>
+                        <button onclick="filterEmployees()">🔍 ค้นหา</button>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>รหัสพนักงาน</th>
+                                    <th>ชื่อ-นามสกุล</th>
+                                    <th>หน่วยงาน</th>
+                                    <th>แผนก</th>
+                                    <th>ตำแหน่ง</th>
+                                    <th>กลุ่ม</th>
+                                </tr>
+                            </thead>
+                            <tbody id="employeesTableBody">
+                                <!-- ข้อมูลจะแสดงที่นี่ -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tools Management Tab -->
+                <div id="toolsTab" class="tab-content">
+                    <h3>🔧 จัดการเครื่องมือและอุปกรณ์</h3>
+                    
+                    <div class="search-filter">
+                        <input type="text" id="toolSearch" placeholder="ค้นหาเครื่องมือ...">
+                        <select id="toolStatusFilter">
+                            <option value="">ทุกสถานะ</option>
+                            <option value="available">พร้อมใช้งาน</option>
+                            <option value="in_use">กำลังใช้งาน</option>
+                            <option value="maintenance">ซ่อมบำรุง</option>
+                            <option value="damaged">ชำรุด</option>
+                        </select>
+                        <button onclick="filterTools()">🔍 ค้นหา</button>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>รหัสเครื่องมือ</th>
+                                    <th>ชื่อเครื่องมือ</th>
+                                    <th>Serial No.</th>
+                                    <th>ตำแหน่ง</th>
+                                    <th>สถานะ</th>
+                                    <th>การดำเนินการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="toolsTableBody">
+                                <!-- ข้อมูลจะแสดงที่นี่ -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Reports Tab -->
+                <div id="reportsTab" class="tab-content">
+                    <h3>📊 รายงานและสถิติ</h3>
+                    
+                    <div class="dashboard-grid">
+                        <div class="dashboard-card">
+                            <h3>📈 สถิติการใช้งานเครื่องมือ</h3>
+                            <div id="toolUsageStats">กำลังโหลด...</div>
+                        </div>
+                        <div class="dashboard-card">
+                            <h3>👥 สถิติพนักงาน</h3>
+                            <div id="employeeStats">กำลังโหลด...</div>
+                        </div>
+                        <div class="dashboard-card">
+                            <h3>⏱️ เวลาการอนุมัติเฉลี่ย</h3>
+                            <div id="approvalTimeStats">กำลังโหลด...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Request Detail Modal -->
+    <div id="requestModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>รายละเอียดคำขอ</h3>
+            </div>
+            <div id="requestModalBody">
+                <!-- รายละเอียดคำขอจะแสดงที่นี่ -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal()">ปิด</button>
+                <button class="btn-primary" onclick="updateRequestStatus()">อัพเดทสถานะ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module" src="firebase-real-config.js"></script>
+    
+    <script type="module">
+        // ตัวแปรสำหรับเก็บข้อมูล
+        let allRequests = [];
+        let allEmployees = [];
+        let allTools = [];
+        let currentRequest = null;
+
+        // รอให้ Firebase พร้อมใช้งาน
+        window.addEventListener('load', async () => {
+            console.log('🚀 เริ่มต้นระบบ Admin Management');
+            
+            // รอให้ Firebase Service พร้อม
+            await waitForFirebase();
+            
+            // โหลดข้อมูลจาก Firebase
+            await loadAllData();
+        });
+
+        function waitForFirebase() {
+            return new Promise((resolve) => {
+                const checkFirebase = () => {
+                    if (window.firebase) {
+                        resolve();
+                    } else {
+                        setTimeout(checkFirebase, 100);
+                    }
+                };
+                checkFirebase();
+            });
+        }
+
+        async function loadAllData() {
+            try {
+                document.getElementById('loadingIndicator').innerHTML = '<div>🔄 กำลังโหลดข้อมูลทั้งหมดจาก Firebase...</div>';
+                
+                // โหลดข้อมูลทั้งหมดพร้อมกัน
+                const [requests, employees, tools] = await Promise.all([
+                    window.firebase.getToolRequests(),
+                    window.firebase.getEmployees(),
+                    window.firebase.getTools()
+                ]);
+
+                allRequests = requests;
+                allEmployees = employees;
+                allTools = tools;
+                
+                console.log('📋 คำขอ:', allRequests.length);
+                console.log('👥 พนักงาน:', allEmployees.length);
+                console.log('🔧 เครื่องมือ:', allTools.length);
+
+                // ซ่อน loading และแสดงเนื้อหา
+                document.getElementById('loadingIndicator').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+
+                // แสดงข้อมูลทั้งหมด
+                updateDashboardStats();
+                displayRequests();
+                displayEmployees();
+                displayTools();
+                updateReports();
+
+                console.log('✅ โหลดข้อมูลเสร็จสิ้น');
+
+            } catch (error) {
+                console.error('❌ Error loading data:', error);
+                document.getElementById('loadingIndicator').innerHTML = `
+                    <div style="color: red;">
+                        ❌ เกิดข้อผิดพลาดในการโหลดข้อมูล<br>
+                        กรุณาตรวจสอบการเชื่อมต่อ Firebase
+                    </div>
+                `;
+            }
+        }
+
+        function updateDashboardStats() {
+            const stats = {
+                totalRequests: allRequests.length,
+                pendingRequests: allRequests.filter(req => req.status === 'pending').length,
+                totalEmployees: allEmployees.length,
+                totalTools: allTools.length,
+                availableTools: allTools.filter(tool => tool.status === 'available').length
+            };
+
+            document.getElementById('dashboardStats').innerHTML = `
+                <div class="dashboard-card">
+                    <h3>📋 คำขอทั้งหมด</h3>
+                    <div class="dashboard-number">${stats.totalRequests}</div>
+                    <div class="dashboard-label">รายการ</div>
+                </div>
+                <div class="dashboard-card">
+                    <h3>⏳ รอดำเนินการ</h3>
+                    <div class="dashboard-number" style="color: #856404;">${stats.pendingRequests}</div>
+                    <div class="dashboard-label">รายการ</div>
+                </div>
+                <div class="dashboard-card">
+                    <h3>👥 พนักงานทั้งหมด</h3>
+                    <div class="dashboard-number">${stats.totalEmployees}</div>
+                    <div class="dashboard-label">คน</div>
+                </div>
+                <div class="dashboard-card">
+                    <h3>🔧 เครื่องมือทั้งหมด</h3>
+                    <div class="dashboard-number">${stats.totalTools}</div>
+                    <div class="dashboard-label">รายการ</div>
+                </div>
+                <div class="dashboard-card">
+                    <h3>✅ เครื่องมือพร้อมใช้</h3>
+                    <div class="dashboard-number" style="color: #155724;">${stats.availableTools}</div>
+                    <div class="dashboard-label">รายการ</div>
+                </div>
+            `;
+        }
+
+        function displayRequests() {
+            const tbody = document.getElementById('requestsTableBody');
+            
+            tbody.innerHTML = allRequests.map(request => `
+                <tr>
+                    <td>${request.id}</td>
+                    <td>${formatDate(request.created_at)}</td>
+                    <td>${request.employee_name}<br><small>${request.employee_id}</small></td>
+                    <td>${request.department || '-'}<br><small>${request.section || '-'}</small></td>
+                    <td>
+                        ${request.requested_tools ? request.requested_tools.length : 0} รายการ
+                        <br><small>${request.requested_tools ? request.requested_tools.map(t => t.tool_name).slice(0,2).join(', ') : ''}</small>
+                    </td>
+                    <td><span class="status-badge status-${request.status}">${getStatusText(request.status)}</span></td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-view" onclick="viewRequest('${request.id}')">👁️ ดู</button>
+                            ${request.status === 'pending' ? `
+                                <button class="btn btn-approve" onclick="approveRequest('${request.id}')">✅ อนุมัติ</button>
+                                <button class="btn btn-reject" onclick="rejectRequest('${request.id}')">❌ ปฏิเสธ</button>
+                            ` : ''}
+                            ${request.status === 'approved' ? `
+                                <button class="btn btn-complete" onclick="completeRequest('${request.id}')">🎯 เสร็จสิ้น</button>
+                            ` : ''}
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function displayEmployees() {
+            const tbody = document.getElementById('employeesTableBody');
+            
+            tbody.innerHTML = allEmployees.map(employee => `
+                <tr>
+                    <td>${employee.employee_id}</td>
+                    <td>${employee.full_name}</td>
+                    <td>${employee.department || '-'}</td>
+                    <td>${employee.section || '-'}</td>
+                    <td>${employee.position || '-'}</td>
+                    <td>${employee.group || '-'}</td>
+                </tr>
+            `).join('');
+
+            // อัพเดทตัวกรองหน่วยงาน
+            const departments = [...new Set(allEmployees.map(emp => emp.department).filter(Boolean))];
+            const departmentFilter = document.getElementById('departmentFilter');
+            departmentFilter.innerHTML = '<option value="">ทุกหน่วยงาน</option>' +
+                departments.map(dept => `<option value="${dept}">${dept}</option>`).join('');
+        }
+
+        function displayTools() {
+            const tbody = document.getElementById('toolsTableBody');
+            
+            tbody.innerHTML = allTools.map(tool => `
+                <tr>
+                    <td>${tool.old_code || tool.id}</td>
+                    <td>${tool.tool_name}</td>
+                    <td>${tool.serial_no || '-'}</td>
+                    <td>${tool.location || '-'}</td>
+                    <td><span class="status-badge status-${tool.status || 'available'}">${getToolStatusText(tool.status)}</span></td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-view" onclick="viewTool('${tool.id}')">👁️ ดู</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updateReports() {
+            // สถิติการใช้งานเครื่องมือ
+            const toolUsage = allRequests.reduce((acc, req) => {
+                if (req.requested_tools) {
+                    req.requested_tools.forEach(tool => {
+                        acc[tool.tool_name] = (acc[tool.tool_name] || 0) + tool.quantity;
+                    });
+                }
+                return acc;
+            }, {});
+
+            const topTools = Object.entries(toolUsage)
+                .sort(([,a], [,b]) => b - a)
+                .slice(0, 5);
+
+            document.getElementById('toolUsageStats').innerHTML = topTools.length > 0 
+                ? topTools.map(([name, count]) => `<div>${name}: ${count} ครั้ง</div>`).join('')
+                : 'ไม่มีข้อมูล';
+
+            // สถิติพนักงาน
+            const employeesByDept = allEmployees.reduce((acc, emp) => {
+                const dept = emp.department || 'ไม่ระบุ';
+                acc[dept] = (acc[dept] || 0) + 1;
+                return acc;
+            }, {});
+
+            document.getElementById('employeeStats').innerHTML = Object.entries(employeesByDept)
+                .map(([dept, count]) => `<div>${dept}: ${count} คน</div>`)
+                .join('');
+
+            // เวลาการอนุมัติเฉลี่ย
+            const approvedRequests = allRequests.filter(req => req.approved_at && req.created_at);
+            let avgTime = 'ไม่มีข้อมูล';
+            
+            if (approvedRequests.length > 0) {
+                const totalTime = approvedRequests.reduce((acc, req) => {
+                    const created = req.created_at.toDate ? req.created_at.toDate() : new Date(req.created_at);
+                    const approved = req.approved_at.toDate ? req.approved_at.toDate() : new Date(req.approved_at);
+                    return acc + (approved - created);
+                }, 0);
+                
+                const avgMs = totalTime / approvedRequests.length;
+                const avgDays = Math.round(avgMs / (1000 * 60 * 60 * 24));
+                avgTime = `${avgDays} วัน`;
+            }
+
+            document.getElementById('approvalTimeStats').innerHTML = avgTime;
+        }
+
+        // ฟังก์ชันต่างๆ
+        function formatDate(dateString) {
+            if (!dateString) return 'ไม่ระบุ';
+            
+            try {
+                let date;
+                if (dateString.toDate) {
+                    date = dateString.toDate();
+                } else {
+                    date = new Date(dateString);
+                }
+                
+                return date.toLocaleDateString('th-TH', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+            } catch (error) {
+                return dateString;
+            }
+        }
+
+        function getStatusText(status) {
+            const statusTexts = {
+                'pending': 'รอดำเนินการ',
+                'approved': 'อนุมัติแล้ว',
+                'completed': 'เสร็จสิ้น',
+                'rejected': 'ปฏิเสธ'
+            };
+            return statusTexts[status] || 'ไม่ระบุ';
+        }
+
+        function getToolStatusText(status) {
+            const statusTexts = {
+                'available': 'พร้อมใช้งาน',
+                'in_use': 'กำลังใช้งาน',
+                'maintenance': 'ซ่อมบำรุง',
+                'damaged': 'ชำรุด'
+            };
+            return statusTexts[status] || 'พร้อมใช้งาน';
+        }
+
+        // ฟังก์ชันสำหรับ tabs
+        window.showTab = function(tabName) {
+            // ซ่อน tab ทั้งหมด
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // แสดง tab ที่เลือก
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            event.target.classList.add('active');
+        };
+
+        // ฟังก์ชันจัดการคำขอ
+        window.viewRequest = function(requestId) {
+            const request = allRequests.find(req => req.id === requestId);
+            if (!request) return;
+
+            currentRequest = request;
+            
+            document.getElementById('requestModalBody').innerHTML = `
+                <div style="margin-bottom: 15px;">
+                    <strong>รหัสคำขอ:</strong> ${request.id}<br>
+                    <strong>วันที่ขอ:</strong> ${formatDate(request.created_at)}<br>
+                    <strong>ผู้ขอ:</strong> ${request.employee_name} (${request.employee_id})<br>
+                    <strong>หน่วยงาน:</strong> ${request.department || '-'}<br>
+                    <strong>แผนก:</strong> ${request.section || '-'}<br>
+                    <strong>โครงการ:</strong> ${request.project || '-'}
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>รายการเครื่องมือ:</strong>
+                    ${request.requested_tools ? request.requested_tools.map(tool => `
+                        <div style="padding: 8px; border: 1px solid #ddd; margin: 5px 0; border-radius: 5px;">
+                            <strong>${tool.tool_name}</strong><br>
+                            รหัส: ${tool.tool_code || '-'} | จำนวน: ${tool.quantity}<br>
+                            ${tool.note ? `หมายเหตุ: ${tool.note}` : ''}
+                        </div>
+                    `).join('') : 'ไม่มีรายการเครื่องมือ'}
+                </div>
+                
+                <div>
+                    <strong>สถานะปัจจุบัน:</strong> 
+                    <span class="status-badge status-${request.status}">${getStatusText(request.status)}</span>
+                </div>
+            `;
+            
+            document.getElementById('requestModal').style.display = 'block';
+        };
+
+        window.approveRequest = async function(requestId) {
+            if (confirm('ยืนยันการอนุมัติคำขอนี้?')) {
+                try {
+                    await window.firebase.updateRequestStatus(requestId, 'approved', 'Admin');
+                    alert('อนุมัติคำขอเรียบร้อยแล้ว');
+                    await loadAllData(); // โหลดข้อมูลใหม่
+                } catch (error) {
+                    alert('เกิดข้อผิดพลาด: ' + error.message);
+                }
+            }
+        };
+
+        window.rejectRequest = async function(requestId) {
+            const reason = prompt('กรุณาระบุเหตุผลในการปฏิเสธ:');
+            if (reason) {
+                try {
+                    await window.firebase.updateRequestStatus(requestId, 'rejected', 'Admin');
+                    alert('ปฏิเสธคำขอเรียบร้อยแล้ว');
+                    await loadAllData(); // โหลดข้อมูลใหม่
+                } catch (error) {
+                    alert('เกิดข้อผิดพลาด: ' + error.message);
+                }
+            }
+        };
+
+        window.completeRequest = async function(requestId) {
+            if (confirm('ยืนยันการทำเครื่องหมายเป็น "เสร็จสิ้น"?')) {
+                try {
+                    await window.firebase.updateRequestStatus(requestId, 'completed', 'Admin');
+                    alert('อัพเดทสถานะเป็น "เสร็จสิ้น" เรียบร้อยแล้ว');
+                    await loadAllData(); // โหลดข้อมูลใหม่
+                } catch (error) {
+                    alert('เกิดข้อผิดพลาด: ' + error.message);
+                }
+            }
+        };
+
+        window.closeModal = function() {
+            document.getElementById('requestModal').style.display = 'none';
+            currentRequest = null;
+        };
+
+        // ฟังก์ชันกรองข้อมูล
+        window.filterRequests = function() {
+            // ในที่นี้สามารถเพิ่มการกรองข้อมูลได้
+            console.log('กรองคำขอ');
+        };
+
+        window.filterEmployees = function() {
+            // ในที่นี้สามารถเพิ่มการกรองข้อมูลได้
+            console.log('กรองพนักงาน');
+        };
+
+        window.filterTools = function() {
+            // ในที่นี้สามารถเพิ่มการกรองข้อมูลได้
+            console.log('กรองเครื่องมือ');
+        };
+
+        // Real-time listener สำหรับข้อมูลใหม่
+        if (window.firebase) {
+            window.firebase.listenToCollection('tool_requests', (newData) => {
+                allRequests = newData;
+                updateDashboardStats();
+                displayRequests();
+                updateReports();
+            });
+        }
+
+    </script>
+</body>
+</html>

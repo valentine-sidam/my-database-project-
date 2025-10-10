@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tools Track - ระบบติดตามเครื่องมือ (Firebase)</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f0f0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #f5f3e8;
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            border: 3px solid #333;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 18px;
+        }
+
+        .firebase-notice {
+            background: #d1ecf1;
+            border: 2px solid #bee5eb;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .firebase-notice h3 {
+            color: #0c5460;
+            margin-bottom: 5px;
+        }
+
+        .firebase-notice p {
+            color: #0c5460;
+            font-size: 14px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 18px;
+        }
+
+        .search-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid #4A90E2;
+        }
+
+        .search-title {
+            color: #4A90E2;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #4A90E2;
+            padding-bottom: 5px;
+        }
+
+        .search-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            color: #4A90E2;
+            margin-bottom: 5px;
+        }
+
+        .form-group input, .form-group select {
+            padding: 10px;
+            border: 2px solid #4A90E2;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .btn-filter {
+            padding: 10px 20px;
+            background: #4A90E2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            height: fit-content;
+        }
+
+        .btn-filter:hover {
+            background: #357abd;
+        }
+
+        .requests-table {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid #4A90E2;
+        }
+
+        .table-header {
+            color: #4A90E2;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #4A90E2;
+            padding-bottom: 5px;
+        }
+
+        .table-content {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .request-item {
+            background: #fafafa;
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .request-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .request-id {
+            font-weight: bold;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .request-status {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffeaa7;
+        }
+
+        .status-approved {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .status-completed {
+            background: #cce5ff;
+            color: #004085;
+            border: 2px solid #99d6ff;
+        }
+
+        .status-rejected {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .request-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .request-info div {
+            color: #555;
+        }
+
+        .tools-list {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        .tools-list h4 {
+            color: #4A90E2;
+            margin-bottom: 10px;
+        }
+
+        .tool-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tool-item:last-child {
+            border-bottom: none;
+        }
+
+        .tool-name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .tool-quantity {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .status-details {
+            background: #e9ecef;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .actions {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .btn-new-request {
+            display: inline-block;
+            padding: 15px 30px;
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .btn-new-request:hover {
+            background: #218838;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 18px;
+        }
+
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid #4A90E2;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #4A90E2;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+
+            .search-form {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .request-info {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-section {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛠️ Tools Track</h1>
+            <p>ระบบติดตามเครื่องมือ (Firebase)</p>
+        </div>
+
+        <div class="firebase-notice">
+            <h3>🔥 เชื่อมต่อกับ Firebase</h3>
+            <p>ระบบดึงข้อมูลคำขอเบิกเครื่องมือจาก Firebase Database แบบ Real-time</p>
+        </div>
+
+        <div id="loadingIndicator" class="loading">
+            <div>🔄 กำลังโหลดข้อมูลจาก Firebase...</div>
+        </div>
+
+        <div id="mainContent" style="display: none;">
+            <!-- Statistics Section -->
+            <div class="stats-section" id="statsSection">
+                <!-- สถิติจะแสดงที่นี่ -->
+            </div>
+
+            <!-- Search Section -->
+            <div class="search-section">
+                <div class="search-title">🔍 ค้นหาและกรองข้อมูล</div>
+                <div class="search-form">
+                    <div class="form-group">
+                        <label for="startDate">วันที่เริ่มต้น:</label>
+                        <input type="date" id="startDate" name="startDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="endDate">วันที่สิ้นสุด:</label>
+                        <input type="date" id="endDate" name="endDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="statusFilter">สถานะ:</label>
+                        <select id="statusFilter" name="statusFilter">
+                            <option value="">ทั้งหมด</option>
+                            <option value="pending">รอดำเนินการ</option>
+                            <option value="approved">อนุมัติแล้ว</option>
+                            <option value="completed">เสร็จสิ้น</option>
+                            <option value="rejected">ปฏิเสธ</option>
+                        </select>
+                    </div>
+                    <button class="btn-filter" onclick="filterRequests()">🔍 ค้นหา</button>
+                </div>
+            </div>
+
+            <!-- Requests Table -->
+            <div class="requests-table">
+                <div class="table-header">
+                    📋 ประวัติการขอเบิกเครื่องมือ
+                </div>
+                <div class="table-content" id="requestsContainer">
+                    <!-- จะแสดงข้อมูลที่นี่ -->
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="actions">
+                <a href="tools-request-firebase.html" class="btn-new-request">
+                    ➕ สร้างคำขอใหม่
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module" src="firebase-real-config.js"></script>
+    
+    <script type="module">
+        // ตัวแปรสำหรับเก็บข้อมูล
+        let allRequests = [];
+        let filteredRequests = [];
+
+        // รอให้ Firebase พร้อมใช้งาน
+        window.addEventListener('load', async () => {
+            console.log('🚀 เริ่มต้นระบบติดตามเครื่องมือ');
+            
+            // รอให้ Firebase Service พร้อม
+            await waitForFirebase();
+            
+            // โหลดข้อมูลจาก Firebase
+            await loadData();
+        });
+
+        function waitForFirebase() {
+            return new Promise((resolve) => {
+                const checkFirebase = () => {
+                    if (window.firebase) {
+                        resolve();
+                    } else {
+                        setTimeout(checkFirebase, 100);
+                    }
+                };
+                checkFirebase();
+            });
+        }
+
+        async function loadData() {
+            try {
+                document.getElementById('loadingIndicator').innerHTML = '<div>🔄 กำลังโหลดข้อมูลคำขอเบิกเครื่องมือ...</div>';
+                
+                // โหลดข้อมูลคำขอทั้งหมด
+                allRequests = await window.firebase.getToolRequests();
+                filteredRequests = [...allRequests];
+                
+                console.log('📋 คำขอเบิกเครื่องมือ:', allRequests.length, 'รายการ');
+
+                // ซ่อน loading และแสดงเนื้อหา
+                document.getElementById('loadingIndicator').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+
+                // ตั้งค่าวันที่เริ่มต้น (30 วันย้อนหลัง)
+                setDefaultDateRange();
+
+                // แสดงสถิติ
+                displayStats();
+
+                // แสดงข้อมูลคำขอ
+                displayRequests(filteredRequests);
+
+                console.log('✅ โหลดข้อมูลเสร็จสิ้น');
+
+            } catch (error) {
+                console.error('❌ Error loading data:', error);
+                document.getElementById('loadingIndicator').innerHTML = `
+                    <div style="color: red;">
+                        ❌ เกิดข้อผิดพลาดในการโหลดข้อมูล<br>
+                        กรุณาตรวจสอบการเชื่อมต่อ Firebase
+                    </div>
+                `;
+            }
+        }
+
+        function setDefaultDateRange() {
+            const today = new Date();
+            const thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+            
+            document.getElementById('startDate').value = thirtyDaysAgo.toISOString().split('T')[0];
+            document.getElementById('endDate').value = today.toISOString().split('T')[0];
+        }
+
+        function displayStats() {
+            const stats = {
+                total: allRequests.length,
+                pending: allRequests.filter(req => req.status === 'pending').length,
+                approved: allRequests.filter(req => req.status === 'approved').length,
+                completed: allRequests.filter(req => req.status === 'completed').length,
+                rejected: allRequests.filter(req => req.status === 'rejected').length
+            };
+
+            document.getElementById('statsSection').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-number">${stats.total}</div>
+                    <div class="stat-label">คำขอทั้งหมด</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" style="color: #856404;">${stats.pending}</div>
+                    <div class="stat-label">รอดำเนินการ</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" style="color: #155724;">${stats.approved}</div>
+                    <div class="stat-label">อนุมัติแล้ว</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" style="color: #004085;">${stats.completed}</div>
+                    <div class="stat-label">เสร็จสิ้น</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" style="color: #721c24;">${stats.rejected}</div>
+                    <div class="stat-label">ปฏิเสธ</div>
+                </div>
+            `;
+        }
+
+        function displayRequests(requests) {
+            const container = document.getElementById('requestsContainer');
+            
+            if (requests.length === 0) {
+                container.innerHTML = `
+                    <div class="no-data">
+                        📭 ไม่พบข้อมูลคำขอเบิกเครื่องมือในช่วงเวลาที่เลือก
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = requests.map(request => `
+                <div class="request-item">
+                    <div class="request-header">
+                        <div class="request-id">📋 ${request.id}</div>
+                        <div class="request-status ${getStatusClass(request.status)}">
+                            ${getStatusText(request.status)}
+                        </div>
+                    </div>
+                    
+                    <div class="request-info">
+                        <div><strong>วันที่ขอ:</strong> ${formatDate(request.created_at)}</div>
+                        <div><strong>ผู้ขอ:</strong> ${request.employee_name} (${request.employee_id})</div>
+                        <div><strong>หน่วยงาน:</strong> ${request.department || '-'}</div>
+                        <div><strong>แผนก:</strong> ${request.section || '-'}</div>
+                        <div><strong>โครงการ:</strong> ${request.project || '-'}</div>
+                    </div>
+
+                    ${getStatusDetails(request)}
+                    
+                    <div class="tools-list">
+                        <h4>🔧 รายการเครื่องมือ:</h4>
+                        ${request.requested_tools ? request.requested_tools.map(tool => `
+                            <div class="tool-item">
+                                <span class="tool-name">${tool.tool_code || tool.tool_id} - ${tool.tool_name}</span>
+                                <span class="tool-quantity">จำนวน: ${tool.quantity}</span>
+                            </div>
+                            ${tool.note ? `<div style="font-size: 12px; color: #666; margin-left: 10px;">หมายเหตุ: ${tool.note}</div>` : ''}
+                        `).join('') : '<div>ไม่มีรายการเครื่องมือ</div>'}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getStatusClass(status) {
+            const statusClasses = {
+                'pending': 'status-pending',
+                'approved': 'status-approved', 
+                'completed': 'status-completed',
+                'rejected': 'status-rejected'
+            };
+            return statusClasses[status] || 'status-pending';
+        }
+
+        function getStatusText(status) {
+            const statusTexts = {
+                'pending': '⏳ รอดำเนินการ',
+                'approved': '✅ อนุมัติแล้ว',
+                'completed': '🎯 เสร็จสิ้น',
+                'rejected': '❌ ปฏิเสธ'
+            };
+            return statusTexts[status] || '⏳ รอดำเนินการ';
+        }
+
+        function getStatusDetails(request) {
+            let details = '';
+            
+            switch (request.status) {
+                case 'approved':
+                    details = `
+                        <div class="status-details">
+                            <strong>✅ อนุมัติโดย:</strong> ${request.approved_by || 'ไม่ระบุ'}<br>
+                            <strong>วันที่อนุมัติ:</strong> ${formatDate(request.approved_at)}
+                        </div>
+                    `;
+                    break;
+                case 'completed':
+                    details = `
+                        <div class="status-details">
+                            <strong>🎯 เสร็จสิ้นเมื่อ:</strong> ${formatDate(request.completed_at)}<br>
+                            <strong>อนุมัติโดย:</strong> ${request.approved_by || 'ไม่ระบุ'}
+                        </div>
+                    `;
+                    break;
+                case 'rejected':
+                    details = `
+                        <div class="status-details">
+                            <strong>❌ ปฏิเสธโดย:</strong> ${request.rejected_by || 'ไม่ระบุ'}<br>
+                            <strong>วันที่ปฏิเสธ:</strong> ${formatDate(request.rejected_at)}<br>
+                            <strong>เหตุผล:</strong> ${request.rejected_reason || 'ไม่ระบุ'}
+                        </div>
+                    `;
+                    break;
+            }
+            
+            return details;
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'ไม่ระบุ';
+            
+            try {
+                let date;
+                if (dateString.toDate) {
+                    // Firestore Timestamp
+                    date = dateString.toDate();
+                } else {
+                    // ISO String
+                    date = new Date(dateString);
+                }
+                
+                return date.toLocaleDateString('th-TH', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch (error) {
+                return dateString;
+            }
+        }
+
+        // ฟังก์ชันกรองข้อมูล
+        window.filterRequests = function() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const status = document.getElementById('statusFilter').value;
+
+            filteredRequests = allRequests.filter(request => {
+                let dateMatch = true;
+                let statusMatch = true;
+
+                // กรองตามวันที่
+                if (startDate || endDate) {
+                    let requestDate;
+                    if (request.created_at && request.created_at.toDate) {
+                        requestDate = request.created_at.toDate();
+                    } else if (request.created_at) {
+                        requestDate = new Date(request.created_at);
+                    } else {
+                        dateMatch = false;
+                    }
+
+                    if (dateMatch && startDate) {
+                        dateMatch = dateMatch && requestDate >= new Date(startDate);
+                    }
+                    if (dateMatch && endDate) {
+                        dateMatch = dateMatch && requestDate <= new Date(endDate + 'T23:59:59');
+                    }
+                }
+
+                // กรองตามสถานะ
+                if (status) {
+                    statusMatch = request.status === status;
+                }
+
+                return dateMatch && statusMatch;
+            });
+
+            console.log('🔍 กรองข้อมูล:', filteredRequests.length, 'จาก', allRequests.length, 'รายการ');
+            displayRequests(filteredRequests);
+        };
+
+        // Real-time listener สำหรับข้อมูลใหม่
+        if (window.firebase) {
+            window.firebase.listenToCollection('tool_requests', (newData) => {
+                console.log('🔥 ข้อมูลอัพเดทจาก Firebase:', newData.length, 'รายการ');
+                allRequests = newData;
+                filteredRequests = [...allRequests];
+                displayStats();
+                filterRequests(); // กรองข้อมูลใหม่ตามเงื่อนไขปัจจุบัน
+            });
+        }
+
+    </script>
+</body>
+</html>

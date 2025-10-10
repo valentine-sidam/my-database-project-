@@ -419,20 +419,6 @@
             </select>
         </div>
 
-        <!-- Request Information Display -->
-        <div class="request-info" id="requestInfo" style="background: #e8f4f8; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #87CEEB;">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                <div class="info-item">
-                    <label style="font-weight: bold; color: #2c5aa0; font-size: 14px;">รายการ:</label>
-                    <span id="requestItems" style="color: #333; font-size: 16px; padding: 8px 12px; background: white; border-radius: 5px; border: 1px solid #ddd; display: block; margin-top: 5px;">Tool A, Tool B</span>
-                </div>
-                <div class="info-item">
-                    <label style="font-weight: bold; color: #2c5aa0; font-size: 14px;">จำนวน:</label>
-                    <span id="requestQuantity" style="color: #333; font-size: 16px; padding: 8px 12px; background: white; border-radius: 5px; border: 1px solid #ddd; display: block; margin-top: 5px;">1, 2</span>
-                </div>
-            </div>
-        </div>
-
         <!-- Tools Track Section -->
         <div class="tools-track">
             <h2>Tools Track</h2>
@@ -441,17 +427,17 @@
             <div class="form-row">
                 <div class="form-group">
                     <label>Employee ID:</label>
-                    <input type="text" id="employeeId" class="form-control" placeholder="รหัสพนักงานจะแสดงอัตโนมัติ" readonly>
+                    <input type="text" id="employeeId" class="form-control" placeholder="กรอกรหัสเจ้าหน้าที่" oninput="loadStaffInfo()" autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label>User:</label>
-                    <input type="text" id="userName" class="form-control" placeholder="ชื่อพนักงานจะแสดงอัตโนมัติ" readonly>
+                    <input type="text" id="userName" class="form-control" placeholder="ชื่อเจ้าหน้าที่จะแสดงอัตโนมัติ" readonly>
                 </div>
             </div>
 
             <div class="form-group">
                 <label>Project:</label>
-                <input type="text" id="projectName" class="form-control" placeholder="ชื่อโครงการจะแสดงอัตโนมัติ" readonly>
+                <input type="text" id="projectName" class="form-control" placeholder="แผนกเจ้าหน้าที่จะแสดงอัตโนมัติ" readonly>
             </div>
 
             <!-- Status Selection -->
@@ -609,13 +595,13 @@
                     requestDate: "2025-10-07",
                     tools: [
                         {
-                            toolId: "T003",
-                            toolName: "เลื่อยวงเดือน BOSCH",
-                            serialNo: "GKS190-X1",
-                            oldCode: "OLD-T003",
+                            toolId: "T006",
+                            toolName: "เครื่องผสมปูน",
+                            serialNo: "E.MJ.CON.010.021.001.0010",
+                            oldCode: "S/N 0010",
                             amount: 1,
-                            unit: "ชุด",
-                            note: "ซ่อมแซม"
+                            unit: "เครื่อง",
+                            note: "งานก่อสร้าง"
                         }
                     ]
                 }
@@ -659,7 +645,83 @@
             "T002": ["XGT401-A01", "XGT401-A02", "XGT401-A03"],
             "T003": ["GKS190-X1", "GKS190-X2"],
             "T004": ["TE7000-H1", "TE7000-H2", "TE7000-H3"],
-            "T005": ["MIG350-M1", "MIG350-M2"]
+            "T005": ["MIG350-M1", "MIG350-M2"],
+            "T006": ["E.MJ.CON.010.021.001.0010", "E.MJ.CON.010.021.001.0011", "E.MJ.CON.010.021.001.0012"]
+        };
+
+        // Firebase Configuration (สำหรับการเชื่อมต่อจริง)
+        const firebaseConfig = {
+            // ใส่ config จริงเมื่อพร้อมใช้งาน
+            apiKey: "your-api-key",
+            authDomain: "your-project.firebaseapp.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "your-app-id"
+        };
+
+        // Initialize Firebase (จะใช้เมื่อมี config จริง)
+        // import { initializeApp } from 'firebase/app';
+        // import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
+        // const app = initializeApp(firebaseConfig);
+        // const db = getFirestore(app);
+
+        // Load staff information from Firebase
+        async function loadStaffInfoFromFirebase(staffId) {
+            try {
+                // Firebase query simulation
+                // const q = query(
+                //     collection(db, "employees"), 
+                //     where("employee_id", "==", staffId),
+                //     where("position", "in", ["พนักงานสโตร์", "ธุรการสโตร์"])
+                // );
+                // const querySnapshot = await getDocs(q);
+                
+                // For now, use mock data
+                return null;
+            } catch (error) {
+                console.error("Error fetching staff data from Firebase:", error);
+                return null;
+            }
+        }
+
+        // Mock Data สำหรับเจ้าหน้าที่สโตร์/ธุรการ
+        const mockStaffData = {
+            "ST001": {
+                employee_id: "ST001",
+                full_name: "สมหญิง เก่งงาน",
+                department: "งานสโตร์",
+                section: "STORE-MANAGEMENT",
+                position: "พนักงานสโตร์"
+            },
+            "ST002": {
+                employee_id: "ST002", 
+                full_name: "วิไลพร จัดการดี",
+                department: "งานธุรการ",
+                section: "ADMIN-OFFICE",
+                position: "ธุรการสโตร์"
+            },
+            "ST003": {
+                employee_id: "ST003",
+                full_name: "อนุชา ควบคุมสต็อก",
+                department: "งานสโตร์",
+                section: "INVENTORY-CONTROL", 
+                position: "พนักงานสโตร์"
+            },
+            "ST004": {
+                employee_id: "ST004",
+                full_name: "สุภาพร ธุรการเก่ง",
+                department: "งานธุรการ",
+                section: "DOCUMENT-CONTROL",
+                position: "ธุรการสโตร์"
+            },
+            "100335": {
+                employee_id: "100335",
+                full_name: "ชิดจรินทร์ จิจรองเรือนดี",
+                department: "งานธุรการ", 
+                section: "แผนกจ่ายสินค้าอลูมิเนียม",
+                position: "ธุรการสโตร์"
+            }
         };
 
         const oldCodes = {
@@ -667,10 +729,47 @@
             "T002": "OLD-T002", 
             "T003": "OLD-T003",
             "T004": "OLD-T004",
-            "T005": "OLD-T005"
+            "T005": "OLD-T005",
+            "T006": "S/N 0010"
         };
 
-        // Clock function
+        // Load staff information (for Employee ID/User/Project fields)
+        function loadStaffInfo() {
+            const staffId = document.getElementById('employeeId').value.trim();
+            console.log("Loading staff info for ID:", staffId); // Debug log
+            
+            if (staffId) {
+                // Try to find staff in mock data first
+                if (mockStaffData[staffId]) {
+                    const staff = mockStaffData[staffId];
+                    console.log("Found staff:", staff); // Debug log
+                    document.getElementById('userName').value = staff.full_name;
+                    document.getElementById('projectName').value = staff.section;
+                    return;
+                }
+                
+                // If not found in mock data, simulate Firebase query
+                console.log("Staff not found in mock data, trying additional data"); // Debug log
+                setTimeout(() => {
+                    if (staffId === "ST005") {
+                        document.getElementById('userName').value = "นางสาวอรทัย จัดการสโตร์";
+                        document.getElementById('projectName').value = "WAREHOUSE-A";
+                    } else if (staffId === "ST006") {
+                        document.getElementById('userName').value = "นายสุรชัย ธุรการเก่า";
+                        document.getElementById('projectName').value = "ADMIN-DEPT";
+                    } else {
+                        // Clear if not found
+                        console.log("Staff ID not found:", staffId); // Debug log
+                        document.getElementById('userName').value = "";
+                        document.getElementById('projectName').value = "";
+                    }
+                }, 300);
+            } else {
+                // Clear fields if empty
+                document.getElementById('userName').value = "";
+                document.getElementById('projectName').value = "";
+            }
+        }
         function updateClock() {
             const now = new Date();
             const timeString = now.toLocaleString('th-TH', {
@@ -687,23 +786,16 @@
         // Load user request data
         function loadUserRequest() {
             const userId = document.getElementById('userSelect').value;
-            const requestInfo = document.getElementById('requestInfo');
             const tbody = document.getElementById('toolsTableBody');
             
             if (userId && mockEmployees[userId]) {
                 const employee = mockEmployees[userId];
                 const request = employee.currentRequest;
                 
-                // Update employee info
-                document.getElementById('employeeId').value = employee.id;
-                document.getElementById('userName').value = employee.name;
-                document.getElementById('projectName').value = employee.section;
-                
-                // Update request info display
-                const toolNames = request.tools.map(tool => tool.toolName).join(', ');
-                const quantities = request.tools.map(tool => tool.amount).join(', ');
-                document.getElementById('requestItems').textContent = toolNames;
-                document.getElementById('requestQuantity').textContent = quantities;
+                // ไม่อัปเดตข้อมูลเจ้าหน้าที่ - ให้เจ้าหน้าที่กรอกเอง
+                // document.getElementById('employeeId').value = employee.id;
+                // document.getElementById('userName').value = employee.name;
+                // document.getElementById('projectName').value = employee.section;
                 
                 // Clear existing table rows
                 tbody.innerHTML = '';
@@ -721,12 +813,12 @@
                                 <option value="T003" ${tool.toolId === 'T003' ? 'selected' : ''}>T003 - เลื่อยวงเดือน BOSCH</option>
                                 <option value="T004" ${tool.toolId === 'T004' ? 'selected' : ''}>T004 - ค้อนเจาะคอนกรีต HILTI</option>
                                 <option value="T005" ${tool.toolId === 'T005' ? 'selected' : ''}>T005 - เครื่องเชื่อม MILLER</option>
+                                <option value="T006" ${tool.toolId === 'T006' ? 'selected' : ''}>T006 - เครื่องผสมปูน</option>
                             </select>
                         </td>
                         <td>
                             <select class="form-control serial-select">
                                 <option value="">-- เลือก Serial No. --</option>
-                                ${tool.serialNo ? `<option value="${tool.serialNo}" selected>${tool.serialNo}</option>` : ''}
                             </select>
                         </td>
                         <td>
@@ -747,10 +839,19 @@
                     // Update serial options for this tool
                     const toolSelect = row.querySelector('.tools-select');
                     updateSerialOptions(toolSelect);
+                    
+                    // Set the correct serial number if available
+                    if (tool.serialNo) {
+                        const serialSelect = row.querySelector('.serial-select');
+                        // Find and select the matching serial number
+                        for (let option of serialSelect.options) {
+                            if (option.value === tool.serialNo) {
+                                option.selected = true;
+                                break;
+                            }
+                        }
+                    }
                 });
-                
-                // Show request info
-                requestInfo.style.display = 'block';
                 
                 // Set default return date (1 month from today)
                 const returnDate = new Date();
@@ -758,11 +859,10 @@
                 document.getElementById('returnDate').value = returnDate.toISOString().split('T')[0];
                 
             } else {
-                // Clear fields
-                document.getElementById('employeeId').value = '';
-                document.getElementById('userName').value = '';
-                document.getElementById('projectName').value = '';
-                requestInfo.style.display = 'none';
+                // ไม่ล้างข้อมูลเจ้าหน้าที่ - ให้เก็บไว้
+                // document.getElementById('employeeId').value = '';
+                // document.getElementById('userName').value = '';
+                // document.getElementById('projectName').value = '';
                 
                 // Reset table to empty row
                 tbody.innerHTML = `
@@ -776,6 +876,7 @@
                                 <option value="T003">T003 - เลื่อยวงเดือน BOSCH</option>
                                 <option value="T004">T004 - ค้อนเจาะคอนกรีต HILTI</option>
                                 <option value="T005">T005 - เครื่องเชื่อม MILLER</option>
+                                <option value="T006">T006 - เครื่องผสมปูน</option>
                             </select>
                         </td>
                         <td>
@@ -798,9 +899,7 @@
                     </tr>
                 `;
             }
-        }
-
-        // Handle tool selection change
+        }        // Handle tool selection change
         function updateSerialOptions(selectElement) {
             const toolId = selectElement.value;
             const row = selectElement.closest('tr');
@@ -812,11 +911,11 @@
             oldCodeInput.value = '';
             
             if (toolId && serialNumbers[toolId]) {
-                // Add serial number options
+                // Add serial number options - แสดงเฉพาะ Serial Number
                 serialNumbers[toolId].forEach(serial => {
                     const option = document.createElement('option');
                     option.value = serial;
-                    option.textContent = serial;
+                    option.textContent = serial; // แสดงเฉพาะ Serial No.
                     serialSelect.appendChild(option);
                 });
                 
@@ -843,6 +942,7 @@
                         <option value="T003">T003 - เลื่อยวงเดือน BOSCH</option>
                         <option value="T004">T004 - ค้อนเจาะคอนกรีต HILTI</option>
                         <option value="T005">T005 - เครื่องเชื่อม MILLER</option>
+                        <option value="T006">T006 - เครื่องผสมปูน</option>
                     </select>
                 </td>
                 <td>
@@ -1006,6 +1106,10 @@
                     userSelect.appendChild(option);
                 }
             });
+            
+            // Test staff data loading
+            console.log("Staff data available:", mockStaffData);
+            console.log("Staff function available:", typeof loadStaffInfo);
         });
     </script>
 </body>
