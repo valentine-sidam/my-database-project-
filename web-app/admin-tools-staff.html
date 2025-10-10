@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tools Track - ระบบจัดการเครื่องมือสำหรับเจ้าหน้าที่</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .header h1 {
+            color: #2c5aa0;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        /* User Selection Section */
+        .user-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 2px solid #dee2e6;
+        }
+
+        .user-section label {
+            color: #dc3545;
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .user-selector {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ced4da;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+        }
+
+        /* Request Info Display */
+        .request-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #e8f4f8;
+            border-radius: 10px;
+            border: 1px solid #87CEEB;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .info-item label {
+            font-weight: bold;
+            color: #2c5aa0;
+            font-size: 14px;
+        }
+
+        .info-item span {
+            color: #333;
+            font-size: 16px;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        /* Tools Track Section */
+        .tools-track {
+            background: #87CEEB;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .tools-track h2 {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #2c5aa0;
+            font-weight: bold;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            color: #2c5aa0;
+            font-size: 14px;
+        }
+
+        .form-control {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            background: white;
+            color: #333;
+        }
+
+        .form-control:focus {
+            border-color: #2c5aa0;
+            outline: none;
+            box-shadow: 0 0 5px rgba(44, 90, 160, 0.3);
+        }
+
+        /* Status Section */
+        .status-section {
+            margin-bottom: 20px;
+        }
+
+        .status-section label {
+            font-weight: bold;
+            color: #2c5aa0;
+            font-size: 14px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .status-options {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .status-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .status-option:hover {
+            border-color: #2c5aa0;
+            background: #f0f8ff;
+        }
+
+        .status-option input[type="radio"] {
+            margin: 0;
+        }
+
+        .status-option.selected {
+            border-color: #dc3545;
+            background: #fff5f5;
+        }
+
+        /* Return Schedule Section */
+        .return-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        /* Tools List Section */
+        .list-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .list-section h3 {
+            color: #2c5aa0;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .tools-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .tools-table th {
+            background: #2c5aa0;
+            color: white;
+            padding: 12px 8px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .tools-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #ddd;
+            text-align: center;
+        }
+
+        .tools-table tr:hover {
+            background: #f5f5f5;
+        }
+
+        .tools-table input,
+        .tools-table select {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-add {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-add:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .btn-remove {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-remove:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+
+        /* Submit Section */
+        .submit-section {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .btn-submit {
+            background: #2c5aa0;
+            color: white;
+            padding: 15px 40px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-submit:hover {
+            background: #1e3d72;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(44, 90, 160, 0.3);
+        }
+
+        /* Clock Display */
+        .clock-display {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #2c5aa0;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+                margin: 10px;
+            }
+
+            .form-row,
+            .request-info,
+            .return-section {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .status-options {
+                flex-direction: column;
+            }
+
+            .tools-table {
+                font-size: 12px;
+            }
+
+            .tools-table th,
+            .tools-table td {
+                padding: 8px 4px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .submit-section {
+                flex-direction: column;
+            }
+        }
+
+        /* Loading and Success States */
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <!-- Clock Display -->
+    <div class="clock-display" id="clockDisplay"></div>
+
+    <div class="container">
+        <div class="header">
+            <h1>🛠️ Tools Track - ระบบจัดการเครื่องมือ</h1>
+            <p>สำหรับเจ้าหน้าที่ธุรการ/สโตร์</p>
+        </div>
+
+        <!-- User Selection -->
+        <div class="user-section">
+            <label for="userSelect">*User:</label>
+            <select id="userSelect" class="user-selector" onchange="loadUserRequest()">
+                <option value="">-- เลือกพนักงานที่มีคำขอ --</option>
+                <!-- จะถูกเติมอัตโนมัติจาก JavaScript -->
+            </select>
+        </div>
+
+        <!-- Request Information Display -->
+        <div class="request-info" id="requestInfo" style="background: #e8f4f8; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #87CEEB;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="info-item">
+                    <label style="font-weight: bold; color: #2c5aa0; font-size: 14px;">รายการ:</label>
+                    <span id="requestItems" style="color: #333; font-size: 16px; padding: 8px 12px; background: white; border-radius: 5px; border: 1px solid #ddd; display: block; margin-top: 5px;">Tool A, Tool B</span>
+                </div>
+                <div class="info-item">
+                    <label style="font-weight: bold; color: #2c5aa0; font-size: 14px;">จำนวน:</label>
+                    <span id="requestQuantity" style="color: #333; font-size: 16px; padding: 8px 12px; background: white; border-radius: 5px; border: 1px solid #ddd; display: block; margin-top: 5px;">1, 2</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tools Track Section -->
+        <div class="tools-track">
+            <h2>Tools Track</h2>
+
+            <!-- Employee and Project Info -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Employee ID:</label>
+                    <input type="text" id="employeeId" class="form-control" placeholder="รหัสพนักงานจะแสดงอัตโนมัติ" readonly>
+                </div>
+                <div class="form-group">
+                    <label>User:</label>
+                    <input type="text" id="userName" class="form-control" placeholder="ชื่อพนักงานจะแสดงอัตโนมัติ" readonly>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Project:</label>
+                <input type="text" id="projectName" class="form-control" placeholder="ชื่อโครงการจะแสดงอัตโนมัติ" readonly>
+            </div>
+
+            <!-- Status Selection -->
+            <div class="status-section">
+                <label>Status:</label>
+                <div class="status-options">
+                    <div class="status-option">
+                        <input type="radio" id="status1" name="status" value="พิมพ์ครั้งแรก">
+                        <label for="status1">พิมพ์ครั้งแรก</label>
+                    </div>
+                    <div class="status-option selected">
+                        <input type="radio" id="status2" name="status" value="ส่งค้น/เครื่องมือ" checked>
+                        <label for="status2">ส่งค้น/เครื่องมือ</label>
+                    </div>
+                    <div class="status-option">
+                        <input type="radio" id="status3" name="status" value="จัดเก็บ">
+                        <label for="status3">จัดเก็บ</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Return Schedule -->
+            <div class="return-section">
+                <div class="form-group">
+                    <label>กำหนดเวลาคืนในครั้งนี้เครื่องมือคืนเคลื่องอื่น:</label>
+                    <select id="returnSchedule" class="form-control">
+                        <option value="">-- เลือกกระ --</option>
+                        <option value="รายวัน">รายวัน</option>
+                        <option value="รายสัปดาห์">รายสัปดาห์</option>
+                        <option value="รายเดือน">รายเดือน</option>
+                        <option value="รายไตรมาส">รายไตรมาส</option>
+                        <option value="รายปี">รายปี</option>
+                        <option value="ใช้ประจำ">ใช้ประจำ</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>วันที่กำหนดคืน:</label>
+                    <input type="date" id="returnDate" class="form-control">
+                </div>
+            </div>
+        </div>
+
+        <!-- Tools List Management -->
+        <div class="list-section">
+            <h3>List</h3>
+            
+            <div class="action-buttons">
+                <button class="btn btn-add" onclick="addToolRow()">
+                    ➕ Add Item
+                </button>
+                <button class="btn btn-remove" onclick="removeToolRow()">
+                    ➖ Delete Item
+                </button>
+            </div>
+
+            <table class="tools-table">
+                <thead>
+                    <tr>
+                        <th style="width: 5%;">No</th>
+                        <th style="width: 25%;">Tools</th>
+                        <th style="width: 20%;">Serial No.</th>
+                        <th style="width: 15%;">Old Code</th>
+                        <th style="width: 10%;">Amount</th>
+                        <th style="width: 10%;">Unit</th>
+                        <th style="width: 15%;">Note</th>
+                    </tr>
+                </thead>
+                <tbody id="toolsTableBody">
+                    <tr>
+                        <td>1</td>
+                        <td>
+                            <select class="form-control tools-select">
+                                <option value="">-- เลือกเครื่องมือ --</option>
+                                <option value="T001">T001 - สว่านไฟฟ้า DEWALT</option>
+                                <option value="T002">T002 - ลูกบอลไฟฟ้า MAKITA</option>
+                                <option value="T003">T003 - เลื่อยวงเดือน BOSCH</option>
+                                <option value="T004">T004 - ค้อนเจาะคอนกรีต HILTI</option>
+                                <option value="T005">T005 - เครื่องเชื่อม MILLER</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="form-control serial-select">
+                                <option value="">-- เลือก Serial No. --</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control old-code" placeholder="Old Code" readonly>
+                        </td>
+                        <td>
+                            <input type="number" class="form-control" placeholder="1" min="1" value="1">
+                        </td>
+                        <td>
+                            <input type="text" class="form-control" placeholder="ชุด" readonly>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control" placeholder="Note">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Submit Section -->
+        <div class="submit-section">
+            <button type="button" class="btn-submit" onclick="saveChanges()">
+                SUBMIT
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Mock Data - เฉพาะพนักงานที่มีคำขอเบิกเครื่องมือ
+        const mockEmployees = {
+            "100007": {
+                id: "100007",
+                name: "กมลลาศ วิชัยโย",
+                department: "งานประกอบติดตั้ง",
+                section: "PRANNOK-TADMAI (DH2)",
+                hasRequests: true,
+                currentRequest: {
+                    id: "REQ001",
+                    status: "pending",
+                    requestDate: "2025-10-08",
+                    tools: [
+                        {
+                            toolId: "T001",
+                            toolName: "สว่านไฟฟ้า DEWALT",
+                            serialNo: "DCD996B-001",
+                            oldCode: "OLD-T001",
+                            amount: 1,
+                            unit: "ชุด",
+                            note: "ใช้งานฉุกเฉิน"
+                        },
+                        {
+                            toolId: "T002", 
+                            toolName: "ลูกบอลไฟฟ้า MAKITA",
+                            serialNo: "XGT401-A01",
+                            oldCode: "OLD-T002",
+                            amount: 2,
+                            unit: "ชิ้น", 
+                            note: "โครงการ DH2"
+                        }
+                    ]
+                }
+            },
+            "100008": {
+                id: "100008",
+                name: "สมชาย ใจดี",
+                department: "งานบำรุงรักษา",
+                section: "MAINTENANCE-A",
+                hasRequests: true,
+                currentRequest: {
+                    id: "REQ002",
+                    status: "approved",
+                    requestDate: "2025-10-07",
+                    tools: [
+                        {
+                            toolId: "T003",
+                            toolName: "เลื่อยวงเดือน BOSCH",
+                            serialNo: "GKS190-X1",
+                            oldCode: "OLD-T003",
+                            amount: 1,
+                            unit: "ชุด",
+                            note: "ซ่อมแซม"
+                        }
+                    ]
+                }
+            },
+            "100009": {
+                id: "100009",
+                name: "นภาพร สายใส",
+                department: "งานคลังวัสดุ",
+                section: "WAREHOUSE-B",
+                hasRequests: true,
+                currentRequest: {
+                    id: "REQ003",
+                    status: "pending",
+                    requestDate: "2025-10-09",
+                    tools: [
+                        {
+                            toolId: "T004",
+                            toolName: "ค้อนเจาะคอนกรีต HILTI",
+                            serialNo: "TE7000-H1",
+                            oldCode: "OLD-T004",
+                            amount: 1,
+                            unit: "ชุด",
+                            note: "งานติดตั้ง"
+                        },
+                        {
+                            toolId: "T005",
+                            toolName: "เครื่องเชื่อม MILLER",
+                            serialNo: "MIG350-M1", 
+                            oldCode: "OLD-T005",
+                            amount: 1,
+                            unit: "ชุด",
+                            note: "ซ่อมโครงสร้าง"
+                        }
+                    ]
+                }
+            }
+        };
+
+        const serialNumbers = {
+            "T001": ["DCD996B-001", "DCD996B-002", "DCD996B-003"],
+            "T002": ["XGT401-A01", "XGT401-A02", "XGT401-A03"],
+            "T003": ["GKS190-X1", "GKS190-X2"],
+            "T004": ["TE7000-H1", "TE7000-H2", "TE7000-H3"],
+            "T005": ["MIG350-M1", "MIG350-M2"]
+        };
+
+        const oldCodes = {
+            "T001": "OLD-T001",
+            "T002": "OLD-T002", 
+            "T003": "OLD-T003",
+            "T004": "OLD-T004",
+            "T005": "OLD-T005"
+        };
+
+        // Clock function
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleString('th-TH', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('clockDisplay').textContent = timeString;
+        }
+
+        // Load user request data
+        function loadUserRequest() {
+            const userId = document.getElementById('userSelect').value;
+            const requestInfo = document.getElementById('requestInfo');
+            const tbody = document.getElementById('toolsTableBody');
+            
+            if (userId && mockEmployees[userId]) {
+                const employee = mockEmployees[userId];
+                const request = employee.currentRequest;
+                
+                // Update employee info
+                document.getElementById('employeeId').value = employee.id;
+                document.getElementById('userName').value = employee.name;
+                document.getElementById('projectName').value = employee.section;
+                
+                // Update request info display
+                const toolNames = request.tools.map(tool => tool.toolName).join(', ');
+                const quantities = request.tools.map(tool => tool.amount).join(', ');
+                document.getElementById('requestItems').textContent = toolNames;
+                document.getElementById('requestQuantity').textContent = quantities;
+                
+                // Clear existing table rows
+                tbody.innerHTML = '';
+                
+                // Populate table with request data
+                request.tools.forEach((tool, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>
+                            <select class="form-control tools-select" onchange="updateSerialOptions(this)">
+                                <option value="">-- เลือกเครื่องมือ --</option>
+                                <option value="T001" ${tool.toolId === 'T001' ? 'selected' : ''}>T001 - สว่านไฟฟ้า DEWALT</option>
+                                <option value="T002" ${tool.toolId === 'T002' ? 'selected' : ''}>T002 - ลูกบอลไฟฟ้า MAKITA</option>
+                                <option value="T003" ${tool.toolId === 'T003' ? 'selected' : ''}>T003 - เลื่อยวงเดือน BOSCH</option>
+                                <option value="T004" ${tool.toolId === 'T004' ? 'selected' : ''}>T004 - ค้อนเจาะคอนกรีต HILTI</option>
+                                <option value="T005" ${tool.toolId === 'T005' ? 'selected' : ''}>T005 - เครื่องเชื่อม MILLER</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="form-control serial-select">
+                                <option value="">-- เลือก Serial No. --</option>
+                                ${tool.serialNo ? `<option value="${tool.serialNo}" selected>${tool.serialNo}</option>` : ''}
+                            </select>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control old-code" placeholder="Old Code" value="${tool.oldCode || ''}" readonly>
+                        </td>
+                        <td>
+                            <input type="number" class="form-control" placeholder="1" min="1" value="${tool.amount}">
+                        </td>
+                        <td>
+                            <input type="text" class="form-control" placeholder="หน่วย" value="${tool.unit}" readonly>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control" placeholder="Note" value="${tool.note || ''}">
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                    
+                    // Update serial options for this tool
+                    const toolSelect = row.querySelector('.tools-select');
+                    updateSerialOptions(toolSelect);
+                });
+                
+                // Show request info
+                requestInfo.style.display = 'block';
+                
+                // Set default return date (1 month from today)
+                const returnDate = new Date();
+                returnDate.setMonth(returnDate.getMonth() + 1);
+                document.getElementById('returnDate').value = returnDate.toISOString().split('T')[0];
+                
+            } else {
+                // Clear fields
+                document.getElementById('employeeId').value = '';
+                document.getElementById('userName').value = '';
+                document.getElementById('projectName').value = '';
+                requestInfo.style.display = 'none';
+                
+                // Reset table to empty row
+                tbody.innerHTML = `
+                    <tr>
+                        <td>1</td>
+                        <td>
+                            <select class="form-control tools-select" onchange="updateSerialOptions(this)">
+                                <option value="">-- เลือกเครื่องมือ --</option>
+                                <option value="T001">T001 - สว่านไฟฟ้า DEWALT</option>
+                                <option value="T002">T002 - ลูกบอลไฟฟ้า MAKITA</option>
+                                <option value="T003">T003 - เลื่อยวงเดือน BOSCH</option>
+                                <option value="T004">T004 - ค้อนเจาะคอนกรีต HILTI</option>
+                                <option value="T005">T005 - เครื่องเชื่อม MILLER</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="form-control serial-select">
+                                <option value="">-- เลือก Serial No. --</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control old-code" placeholder="Old Code" readonly>
+                        </td>
+                        <td>
+                            <input type="number" class="form-control" placeholder="1" min="1" value="1">
+                        </td>
+                        <td>
+                            <input type="text" class="form-control" placeholder="ชุด" readonly>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control" placeholder="Note">
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Handle tool selection change
+        function updateSerialOptions(selectElement) {
+            const toolId = selectElement.value;
+            const row = selectElement.closest('tr');
+            const serialSelect = row.querySelector('.serial-select');
+            const oldCodeInput = row.querySelector('.old-code');
+            
+            // Clear previous options
+            serialSelect.innerHTML = '<option value="">-- เลือก Serial No. --</option>';
+            oldCodeInput.value = '';
+            
+            if (toolId && serialNumbers[toolId]) {
+                // Add serial number options
+                serialNumbers[toolId].forEach(serial => {
+                    const option = document.createElement('option');
+                    option.value = serial;
+                    option.textContent = serial;
+                    serialSelect.appendChild(option);
+                });
+                
+                // Set old code
+                if (oldCodes[toolId]) {
+                    oldCodeInput.value = oldCodes[toolId];
+                }
+            }
+        }
+
+        // Add new tool row
+        function addToolRow() {
+            const tbody = document.getElementById('toolsTableBody');
+            const rowCount = tbody.rows.length + 1;
+            
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td>${rowCount}</td>
+                <td>
+                    <select class="form-control tools-select" onchange="updateSerialOptions(this)">
+                        <option value="">-- เลือกเครื่องมือ --</option>
+                        <option value="T001">T001 - สว่านไฟฟ้า DEWALT</option>
+                        <option value="T002">T002 - ลูกบอลไฟฟ้า MAKITA</option>
+                        <option value="T003">T003 - เลื่อยวงเดือน BOSCH</option>
+                        <option value="T004">T004 - ค้อนเจาะคอนกรีต HILTI</option>
+                        <option value="T005">T005 - เครื่องเชื่อม MILLER</option>
+                    </select>
+                </td>
+                <td>
+                    <select class="form-control serial-select">
+                        <option value="">-- เลือก Serial No. --</option>
+                    </select>
+                </td>
+                <td>
+                    <input type="text" class="form-control old-code" placeholder="Old Code" readonly>
+                </td>
+                <td>
+                    <input type="number" class="form-control" placeholder="1" min="1" value="1">
+                </td>
+                <td>
+                    <input type="text" class="form-control" placeholder="ชุด" readonly>
+                </td>
+                <td>
+                    <input type="text" class="form-control" placeholder="Note">
+                </td>
+            `;
+            
+            tbody.appendChild(newRow);
+            updateRowNumbers();
+        }
+
+        // Remove last tool row
+        function removeToolRow() {
+            const tbody = document.getElementById('toolsTableBody');
+            if (tbody.rows.length > 1) {
+                tbody.removeChild(tbody.lastElementChild);
+                updateRowNumbers();
+            } else {
+                alert('ต้องมีอย่างน้อย 1 แถว');
+            }
+        }
+
+        // Update row numbers
+        function updateRowNumbers() {
+            const tbody = document.getElementById('toolsTableBody');
+            for (let i = 0; i < tbody.rows.length; i++) {
+                tbody.rows[i].cells[0].textContent = i + 1;
+            }
+        }
+
+        // Handle status selection
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusOptions = document.querySelectorAll('.status-option');
+            statusOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Remove selected class from all options
+                    statusOptions.forEach(opt => opt.classList.remove('selected'));
+                    // Add selected class to clicked option
+                    this.classList.add('selected');
+                    // Select the radio button
+                    const radio = this.querySelector('input[type="radio"]');
+                    radio.checked = true;
+                });
+            });
+
+            // Add change event for tools selection
+            document.addEventListener('change', function(e) {
+                if (e.target.classList.contains('tools-select')) {
+                    updateSerialOptions(e.target);
+                }
+            });
+        });
+
+        // Save changes
+        function saveChanges() {
+            const userId = document.getElementById('userSelect').value;
+            const status = document.querySelector('input[name="status"]:checked')?.value;
+            const returnSchedule = document.getElementById('returnSchedule').value;
+            const returnDate = document.getElementById('returnDate').value;
+            
+            if (!userId) {
+                alert('กรุณาเลือกพนักงาน');
+                return;
+            }
+            
+            if (!status) {
+                alert('กรุณาเลือกสถานะ');
+                return;
+            }
+            
+            // Collect tools data
+            const toolsData = [];
+            const tbody = document.getElementById('toolsTableBody');
+            
+            for (let i = 0; i < tbody.rows.length; i++) {
+                const row = tbody.rows[i];
+                const toolSelect = row.querySelector('.tools-select');
+                const serialSelect = row.querySelector('.serial-select');
+                const oldCode = row.querySelector('.old-code').value;
+                const amount = row.querySelector('input[type="number"]').value;
+                const unit = row.querySelectorAll('input[type="text"]')[1].value; // Unit field
+                const note = row.querySelectorAll('input[type="text"]')[2].value; // Note field
+                
+                if (toolSelect.value) {
+                    toolsData.push({
+                        tool: toolSelect.value,
+                        toolName: toolSelect.options[toolSelect.selectedIndex].text,
+                        serialNo: serialSelect.value,
+                        oldCode: oldCode,
+                        amount: amount || 1,
+                        unit: unit,
+                        note: note
+                    });
+                }
+            }
+            
+            if (toolsData.length === 0) {
+                alert('กรุณาเลือกเครื่องมืออย่างน้อย 1 รายการ');
+                return;
+            }
+            
+            // Simulate saving
+            const requestData = {
+                userId: userId,
+                employee: mockEmployees[userId],
+                status: status,
+                returnSchedule: returnSchedule,
+                returnDate: returnDate,
+                tools: toolsData,
+                updatedAt: new Date().toISOString(),
+                updatedBy: 'staff@company.com'
+            };
+            
+            console.log('Saving request data:', requestData);
+            
+            // Show success message
+            alert(`บันทึกข้อมูลเรียบร้อยแล้ว!
+
+ผู้ขอ: ${mockEmployees[userId].name}
+สถานะ: ${status}
+จำนวนเครื่องมือ: ${toolsData.length} รายการ
+วันที่กำหนดคืน: ${returnDate}`);
+            
+            // Keep the current data (don't reset)
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateClock();
+            setInterval(updateClock, 1000);
+            
+            // Set default return schedule
+            document.getElementById('returnSchedule').value = 'รายเดือน';
+            
+            // Populate user dropdown with employees who have requests
+            const userSelect = document.getElementById('userSelect');
+            
+            // Clear existing options (except the first one)
+            userSelect.innerHTML = '<option value="">-- เลือกพนักงานที่มีคำขอ --</option>';
+            
+            // Add employees who have requests
+            Object.values(mockEmployees).forEach(employee => {
+                if (employee.hasRequests) {
+                    const option = document.createElement('option');
+                    option.value = employee.id;
+                    option.textContent = `${employee.id} - ${employee.name}`;
+                    userSelect.appendChild(option);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

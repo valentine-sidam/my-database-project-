@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tools Track - Admin Management System</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #87CEEB 0%, #4682B4 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: #f0f8ff;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            max-width: 1400px;
+            margin: 0 auto;
+            border: 2px solid #4682B4;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #4682B4;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            color: #2c5aa0;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .header p {
+            color: #4682B4;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .admin-info {
+            background: #e6f3ff;
+            border: 2px solid #4682B4;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .admin-details h3 {
+            color: #2c5aa0;
+            margin-bottom: 5px;
+        }
+
+        .admin-details p {
+            color: #4682B4;
+            font-size: 14px;
+        }
+
+        .status-summary {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .status-card {
+            background: white;
+            border: 2px solid #4682B4;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .status-card h4 {
+            color: #2c5aa0;
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .status-card p {
+            color: #4682B4;
+            font-size: 12px;
+        }
+
+        .filter-section {
+            background: #e6f3ff;
+            border: 2px solid #4682B4;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .filter-title {
+            color: #2c5aa0;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 20px;
+            align-items: end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            color: #2c5aa0;
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .filter-group select, .filter-group input {
+            padding: 12px;
+            border: 2px solid #4682B4;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            color: #2c5aa0;
+        }
+
+        .filter-group select:focus, .filter-group input:focus {
+            outline: none;
+            border-color: #2c5aa0;
+            box-shadow: 0 0 5px rgba(44, 90, 160, 0.3);
+        }
+
+        .btn-filter {
+            background: #4682B4;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            height: fit-content;
+        }
+
+        .btn-filter:hover {
+            background: #2c5aa0;
+        }
+
+        .requests-container {
+            background: white;
+            border: 2px solid #4682B4;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .requests-header {
+            background: #4682B4;
+            color: white;
+            padding: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .requests-content {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .request-item {
+            border-bottom: 2px solid #e6f3ff;
+            padding: 25px;
+            transition: background-color 0.3s;
+        }
+
+        .request-item:hover {
+            background: #f0f8ff;
+        }
+
+        .request-item:last-child {
+            border-bottom: none;
+        }
+
+        .request-header {
+            display: grid;
+            grid-template-columns: 200px 200px 200px 1fr 150px;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f0f8ff;
+            border-radius: 10px;
+            border: 1px solid #4682B4;
+        }
+
+        .request-id {
+            font-weight: bold;
+            color: #2c5aa0;
+            font-size: 16px;
+        }
+
+        .employee-info {
+            color: #4682B4;
+            font-size: 14px;
+        }
+
+        .project-info {
+            color: #4682B4;
+            font-size: 14px;
+        }
+
+        .request-date {
+            color: #666;
+            font-size: 12px;
+        }
+
+        .status-dropdown {
+            padding: 8px 12px;
+            border: 2px solid #4682B4;
+            border-radius: 5px;
+            background: white;
+            color: #2c5aa0;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .status-pending { background: #fff3cd; }
+        .status-approved { background: #d4edda; }
+        .status-completed { background: #cce5ff; }
+        .status-rejected { background: #f8d7da; }
+
+        .tools-management {
+            margin-top: 20px;
+            background: #f8f9fa;
+            border: 2px solid #4682B4;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .tools-title {
+            color: #2c5aa0;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: 50px 300px 100px 150px 100px 80px 100px;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .tools-header {
+            background: #4682B4;
+            color: white;
+            padding: 10px 5px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 12px;
+            border-radius: 5px;
+        }
+
+        .tool-row {
+            background: white;
+            border: 1px solid #4682B4;
+            border-radius: 5px;
+            padding: 10px 5px;
+            text-align: center;
+            font-size: 13px;
+            color: #2c5aa0;
+        }
+
+        .tool-row select, .tool-row input {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #4682B4;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+        }
+
+        .btn-add, .btn-delete {
+            width: 25px;
+            height: 25px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-add {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-add:hover {
+            background: #218838;
+        }
+
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #c82333;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        .btn-save, .btn-cancel {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-save {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-save:hover {
+            background: #218838;
+        }
+
+        .btn-cancel {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-cancel:hover {
+            background: #545b62;
+        }
+
+        .no-requests {
+            text-align: center;
+            padding: 50px;
+            color: #4682B4;
+            font-style: italic;
+            font-size: 18px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+                margin: 10px;
+            }
+
+            .filter-row {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .request-header {
+                grid-template-columns: 1fr;
+                gap: 10px;
+                text-align: center;
+            }
+
+            .tools-grid {
+                grid-template-columns: 1fr;
+                gap: 5px;
+            }
+
+            .status-summary {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛠️ Tools Track Admin</h1>
+            <p>ระบบจัดการคำขอเบิกเครื่องมือ - สำหรับเจ้าหน้าที่ธุรการ</p>
+        </div>
+
+        <!-- Admin Info -->
+        <div class="admin-info">
+            <div class="admin-details">
+                <h3>👩‍💼 เจ้าหน้าที่ธุรการ</h3>
+                <p><strong>ชื่อ:</strong> สมหญิง ใจดี | <strong>ตำแหน่ง:</strong> เจ้าหน้าที่คลังเครื่องมือ</p>
+                <p><strong>วันที่:</strong> <span id="currentDate"></span> | <strong>เวลา:</strong> <span id="currentTime"></span></p>
+            </div>
+            <div class="status-summary">
+                <div class="status-card">
+                    <h4 id="pendingCount">5</h4>
+                    <p>รอดำเนินการ</p>
+                </div>
+                <div class="status-card">
+                    <h4 id="approvedCount">3</h4>
+                    <p>อนุมัติแล้ว</p>
+                </div>
+                <div class="status-card">
+                    <h4 id="completedCount">8</h4>
+                    <p>เสร็จสิ้น</p>
+                </div>
+                <div class="status-card">
+                    <h4 id="rejectedCount">1</h4>
+                    <p>ปฏิเสธ</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <div class="filter-title">🔍 ค้นหาและกรองข้อมูลคำขอ</div>
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label>User (ผู้ขอ):</label>
+                    <select id="userFilter">
+                        <option value="">ทั้งหมด</option>
+                        <option value="100007">100007 - กมลลาศ วิชัยโย</option>
+                        <option value="100013">100013 - ชัยชาญ สมบูรณ์</option>
+                        <option value="100015">100015 - ปิยะ สุวรรณไตย</option>
+                        <option value="100020">100020 - สมชาย ใจดี</option>
+                        <option value="100025">100025 - สมหญิง สุขใจ</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>สถานะ:</label>
+                    <select id="statusFilter">
+                        <option value="">ทั้งหมด</option>
+                        <option value="pending">รอดำเนินการ</option>
+                        <option value="approved">อนุมัติแล้ว</option>
+                        <option value="completed">เสร็จสิ้น</option>
+                        <option value="rejected">ปฏิเสธ</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>วันที่:</label>
+                    <input type="date" id="dateFilter">
+                </div>
+                <button class="btn-filter" onclick="filterRequests()">🔍 ค้นหา</button>
+            </div>
+        </div>
+
+        <!-- Requests Container -->
+        <div class="requests-container">
+            <div class="requests-header">
+                📋 คำขอเบิกเครื่องมือทั้งหมด
+            </div>
+            <div class="requests-content" id="requestsContent">
+                <!-- จะแสดงข้อมูลคำขอที่นี่ -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock Data สำหรับการทดสอบ
+        let requestsData = [
+            {
+                id: "REQ001",
+                employee_id: "100007",
+                employee_name: "กมลลาศ วิชัยโย",
+                project: "PRANNOK-TADMAI (DH2)",
+                created_at: "2024-10-08",
+                status: "pending",
+                tools: [
+                    { id: 1, tool_name: "สว่านไฟฟ้า DEWALT", serial_no: "DCD996B", old_code: "T001", quantity: 1, note: "งานติดตั้ง" },
+                    { id: 2, tool_name: "บิตสว่าน Set 20 ชิ้น", serial_no: "DT7969", old_code: "T002", quantity: 1, note: "" }
+                ]
+            },
+            {
+                id: "REQ002",
+                employee_id: "100013",
+                employee_name: "ชัยชาญ สมบูรณ์",
+                project: "PRANNOK-TADMAI (DH2)",
+                created_at: "2024-10-09",
+                status: "approved",
+                tools: [
+                    { id: 3, tool_name: "กบไฟฟ้า", serial_no: "DW680K", old_code: "T003", quantity: 1, note: "งานเจาะไม้" }
+                ]
+            },
+            {
+                id: "REQ003",
+                employee_id: "100015",
+                employee_name: "ปิยะ สุวรรณไตย",
+                project: "PROJECT-A",
+                created_at: "2024-10-07",
+                status: "completed",
+                tools: [
+                    { id: 4, tool_name: "ลูกบิดพร้อมด้าม", serial_no: "SB001", old_code: "T004", quantity: 2, note: "" },
+                    { id: 5, tool_name: "ค้อนหงอน", serial_no: "HM001", old_code: "T005", quantity: 1, note: "งานประกอบ" }
+                ]
+            },
+            {
+                id: "REQ004",
+                employee_id: "100020",
+                employee_name: "สมชาย ใจดี",
+                project: "PROJECT-B",
+                created_at: "2024-10-06",
+                status: "rejected",
+                tools: [
+                    { id: 6, tool_name: "เลื่อยวงเดือน", serial_no: "CS001", old_code: "T006", quantity: 1, note: "งานตัดไม้" }
+                ]
+            },
+            {
+                id: "REQ005",
+                employee_id: "100007",
+                employee_name: "กมลลาศ วิชัยโย",
+                project: "PRANNOK-TADMAI (DH2)",
+                created_at: "2024-10-10",
+                status: "pending",
+                tools: [
+                    { id: 7, tool_name: "ไขควงชุด", serial_no: "SD001", old_code: "T007", quantity: 1, note: "" }
+                ]
+            }
+        ];
+
+        const availableTools = [
+            { tool_name: "สว่านไฟฟ้า DEWALT", serial_no: "DCD996B", old_code: "T001" },
+            { tool_name: "บิตสว่าน Set 20 ชิ้น", serial_no: "DT7969", old_code: "T002" },
+            { tool_name: "กบไฟฟ้า", serial_no: "DW680K", old_code: "T003" },
+            { tool_name: "ลูกบิดพร้อมด้าม", serial_no: "SB001", old_code: "T004" },
+            { tool_name: "ค้อนหงอน", serial_no: "HM001", old_code: "T005" },
+            { tool_name: "เลื่อยวงเดือน", serial_no: "CS001", old_code: "T006" },
+            { tool_name: "ไขควงชุด", serial_no: "SD001", old_code: "T007" },
+            { tool_name: "ประแจแหวน", serial_no: "WR001", old_code: "T008" }
+        ];
+
+        let filteredRequests = [...requestsData];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDateTime();
+            updateStatusSummary();
+            displayRequests(requestsData);
+            
+            // Update time every second
+            setInterval(updateDateTime, 1000);
+        });
+
+        function updateDateTime() {
+            const now = new Date();
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('th-TH');
+            document.getElementById('currentTime').textContent = now.toLocaleTimeString('th-TH');
+        }
+
+        function updateStatusSummary() {
+            const pending = requestsData.filter(req => req.status === 'pending').length;
+            const approved = requestsData.filter(req => req.status === 'approved').length;
+            const completed = requestsData.filter(req => req.status === 'completed').length;
+            const rejected = requestsData.filter(req => req.status === 'rejected').length;
+
+            document.getElementById('pendingCount').textContent = pending;
+            document.getElementById('approvedCount').textContent = approved;
+            document.getElementById('completedCount').textContent = completed;
+            document.getElementById('rejectedCount').textContent = rejected;
+        }
+
+        function displayRequests(requests) {
+            const container = document.getElementById('requestsContent');
+            
+            if (requests.length === 0) {
+                container.innerHTML = `
+                    <div class="no-requests">
+                        📭 ไม่พบคำขอที่ตรงกับเงื่อนไขการค้นหา
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = requests.map(request => `
+                <div class="request-item">
+                    <div class="request-header">
+                        <div class="request-id">📋 ${request.id}</div>
+                        <div class="employee-info">
+                            <strong>👤 ${request.employee_name}</strong><br>
+                            <small>รหัส: ${request.employee_id}</small>
+                        </div>
+                        <div class="project-info">
+                            <strong>📁 ${request.project}</strong>
+                        </div>
+                        <div class="request-date">
+                            📅 ${formatDate(request.created_at)}
+                        </div>
+                        <select class="status-dropdown status-${request.status}" onchange="changeStatus('${request.id}', this.value)">
+                            <option value="pending" ${request.status === 'pending' ? 'selected' : ''}>รอดำเนินการ</option>
+                            <option value="approved" ${request.status === 'approved' ? 'selected' : ''}>อนุมัติแล้ว</option>
+                            <option value="completed" ${request.status === 'completed' ? 'selected' : ''}>เสร็จสิ้น</option>
+                            <option value="rejected" ${request.status === 'rejected' ? 'selected' : ''}>ปฏิเสธ</option>
+                        </select>
+                    </div>
+                    
+                    <div class="tools-management">
+                        <div class="tools-title">
+                            🔧 รายการเครื่องมือ
+                            <button class="btn-add" onclick="addNewTool('${request.id}')" title="เพิ่มเครื่องมือ">+</button>
+                        </div>
+                        
+                        <div class="tools-grid">
+                            <div class="tools-header">No</div>
+                            <div class="tools-header">Tool (เครื่องมือ)</div>
+                            <div class="tools-header">Serial No.</div>
+                            <div class="tools-header">Old Code</div>
+                            <div class="tools-header">จำนวน</div>
+                            <div class="tools-header">Note</div>
+                            <div class="tools-header">จัดการ</div>
+                        </div>
+                        
+                        <div id="tools-${request.id}">
+                            ${request.tools.map((tool, index) => generateToolRow(request.id, tool, index + 1)).join('')}
+                        </div>
+                        
+                        <div class="action-buttons">
+                            <button class="btn-save" onclick="saveChanges('${request.id}')">💾 บันทึกการเปลี่ยนแปลง</button>
+                            <button class="btn-cancel" onclick="cancelChanges('${request.id}')">❌ ยกเลิก</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function generateToolRow(requestId, tool, index) {
+            return `
+                <div class="tool-row">${index}</div>
+                <div class="tool-row">
+                    <select onchange="updateToolInfo('${requestId}', ${tool.id}, this)">
+                        <option value="">เลือกเครื่องมือ</option>
+                        ${availableTools.map(t => `
+                            <option value="${JSON.stringify(t).replace(/"/g, '&quot;')}" 
+                                    ${t.tool_name === tool.tool_name ? 'selected' : ''}>
+                                ${t.tool_name}
+                            </option>
+                        `).join('')}
+                    </select>
+                </div>
+                <div class="tool-row">
+                    <input type="text" value="${tool.serial_no}" id="serial-${requestId}-${tool.id}" readonly>
+                </div>
+                <div class="tool-row">
+                    <input type="text" value="${tool.old_code}" id="code-${requestId}-${tool.id}" readonly>
+                </div>
+                <div class="tool-row">
+                    <input type="number" value="${tool.quantity}" min="1" id="qty-${requestId}-${tool.id}">
+                </div>
+                <div class="tool-row">
+                    <input type="text" value="${tool.note}" id="note-${requestId}-${tool.id}" placeholder="หมายเหตุ">
+                </div>
+                <div class="tool-row">
+                    <button class="btn-delete" onclick="deleteTool('${requestId}', ${tool.id})" title="ลบ">×</button>
+                </div>
+            `;
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('th-TH', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        function changeStatus(requestId, newStatus) {
+            const request = requestsData.find(req => req.id === requestId);
+            if (request) {
+                request.status = newStatus;
+                updateStatusSummary();
+                console.log(`✅ เปลี่ยนสถานะคำขอ ${requestId} เป็น: ${newStatus}`);
+                
+                // Refresh display to update styling
+                const currentFilter = getCurrentFilter();
+                filterRequests();
+            }
+        }
+
+        function updateToolInfo(requestId, toolId, selectElement) {
+            if (selectElement.value) {
+                const toolData = JSON.parse(selectElement.value);
+                document.getElementById(`serial-${requestId}-${toolId}`).value = toolData.serial_no;
+                document.getElementById(`code-${requestId}-${toolId}`).value = toolData.old_code;
+                console.log(`🔧 อัพเดทข้อมูลเครื่องมือ: ${toolData.tool_name}`);
+            }
+        }
+
+        function addNewTool(requestId) {
+            const request = requestsData.find(req => req.id === requestId);
+            if (request) {
+                const newToolId = Date.now(); // Generate unique ID
+                const newTool = {
+                    id: newToolId,
+                    tool_name: "",
+                    serial_no: "",
+                    old_code: "",
+                    quantity: 1,
+                    note: ""
+                };
+                
+                request.tools.push(newTool);
+                
+                // Refresh the tools display for this request
+                const toolsContainer = document.getElementById(`tools-${requestId}`);
+                toolsContainer.innerHTML = request.tools.map((tool, index) => 
+                    generateToolRow(requestId, tool, index + 1)
+                ).join('');
+                
+                console.log(`➕ เพิ่มเครื่องมือใหม่ในคำขอ ${requestId}`);
+            }
+        }
+
+        function deleteTool(requestId, toolId) {
+            const request = requestsData.find(req => req.id === requestId);
+            if (request && request.tools.length > 1) {
+                request.tools = request.tools.filter(tool => tool.id !== toolId);
+                
+                // Refresh the tools display for this request
+                const toolsContainer = document.getElementById(`tools-${requestId}`);
+                toolsContainer.innerHTML = request.tools.map((tool, index) => 
+                    generateToolRow(requestId, tool, index + 1)
+                ).join('');
+                
+                console.log(`➖ ลบเครื่องมือออกจากคำขอ ${requestId}`);
+            } else {
+                alert('ต้องมีเครื่องมืออย่างน้อย 1 รายการ');
+            }
+        }
+
+        function saveChanges(requestId) {
+            const request = requestsData.find(req => req.id === requestId);
+            if (request) {
+                // Update tool quantities and notes
+                request.tools.forEach(tool => {
+                    const qtyInput = document.getElementById(`qty-${requestId}-${tool.id}`);
+                    const noteInput = document.getElementById(`note-${requestId}-${tool.id}`);
+                    
+                    if (qtyInput) tool.quantity = parseInt(qtyInput.value) || 1;
+                    if (noteInput) tool.note = noteInput.value || '';
+                });
+                
+                alert(`💾 บันทึกการเปลี่ยนแปลงคำขอ ${requestId} เรียบร้อย`);
+                console.log(`💾 บันทึกข้อมูลคำขอ ${requestId}:`, request);
+            }
+        }
+
+        function cancelChanges(requestId) {
+            if (confirm('ต้องการยกเลิกการเปลี่ยนแปลงทั้งหมด?')) {
+                // Refresh the display to original state
+                displayRequests(filteredRequests);
+                console.log(`❌ ยกเลิกการเปลี่ยนแปลงคำขอ ${requestId}`);
+            }
+        }
+
+        function filterRequests() {
+            const userFilter = document.getElementById('userFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            const dateFilter = document.getElementById('dateFilter').value;
+
+            filteredRequests = requestsData.filter(request => {
+                const matchUser = !userFilter || request.employee_id === userFilter;
+                const matchStatus = !statusFilter || request.status === statusFilter;
+                const matchDate = !dateFilter || request.created_at === dateFilter;
+                
+                return matchUser && matchStatus && matchDate;
+            });
+
+            displayRequests(filteredRequests);
+            console.log(`🔍 กรองข้อมูล: พบ ${filteredRequests.length} คำขอ`);
+        }
+
+        function getCurrentFilter() {
+            return {
+                user: document.getElementById('userFilter').value,
+                status: document.getElementById('statusFilter').value,
+                date: document.getElementById('dateFilter').value
+            };
+        }
+    </script>
+</body>
+</html>
