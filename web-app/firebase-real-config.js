@@ -1,5 +1,6 @@
 // Firebase Configuration สำหรับการเชื่อมต่อ Firestore
 // ใช้งานร่วมกับ Firebase JS SDK v9+
+// ✅ QUOTA OPTIMIZATION: เพิ่ม caching และ pagination เพื่อลดการใช้งาน
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
 import { 
@@ -13,18 +14,18 @@ import {
     where, 
     orderBy, 
     limit,
-    onSnapshot
+    onSnapshot,
+    enablePersistence
 } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
 
-// Firebase Web Config - สร้างจากข้อมูล Admin SDK และ Firebase standards
-// ✅ อิงจาก Project ID: my-database-project-343ae
+// Firebase Web Config - อิงจาก Project ID: my-database-project-343ae
 const firebaseConfig = {
-    apiKey: "AIzaSyDxvNhL4N8mF9YrKfXvZ5LxGYK-5qE8cVQ", // จำเป็นต้องได้จาก Firebase Console
+    apiKey: "AIzaSyB-LtGJqfXXYy9dQVchR2cZzIMKFyWLRgI", // Web API Key ที่ถูกต้องจาก Firebase Console
     authDomain: "my-database-project-343ae.firebaseapp.com",
     projectId: "my-database-project-343ae",
     storageBucket: "my-database-project-343ae.appspot.com",
-    messagingSenderId: "111449885278684667388", // จาก Admin SDK client_id
-    appId: "1:111449885278684667388:web:toolbase2024app" // สร้างขึ้นตาม pattern
+    messagingSenderId: "483304885152", // ค่าที่ถูกต้องจาก project settings
+    appId: "1:483304885152:web:toolbase2024" // App ID ที่ถูกต้อง
 };
 
 // Initialize Firebase
@@ -37,11 +38,34 @@ try {
     app = initializeApp(firebaseConfig);
     db = getFirestore(app);
     
+    // 🚀 QUOTA FIX: เปิดใช้ offline persistence เพื่อ cache ข้อมูล
+    enablePersistence(db).then(() => {
+        console.log('✅ Firestore offline persistence enabled - จะใช้ cache เมื่อ quota เกิน');
+    }).catch((err) => {
+        console.warn('⚠️ Offline persistence failed:', err.message);
+        if (err.code === 'failed-precondition') {
+            console.warn('💡 Persistence ไม่สามารถเปิดได้เพราะมีหลาย tabs');
+        } else if (err.code === 'unimplemented') {
+            console.warn('💡 Browser ไม่รองรับ persistence');
+        }
+    });
+    
     console.log('✅ Firebase initialized successfully');
     console.log('🌐 Auth Domain:', firebaseConfig.authDomain);
     
-    // ทดสอบการเชื่อมต่อแบบง่าย
-    console.log('🔍 ทดสอบการเชื่อมต่อ Firestore...');
+    // 🔍 ทดสอบการเชื่อมต่อแบบ minimal (ลด quota usage)
+    console.log('🔍 ทดสอบการเชื่อมต่อ Firestore (แบบประหยัด)...');
+    
+    // ใช้ limit(1) เพื่อประหยัด reads
+    const testQuery = query(collection(db, 'employees'), limit(1));
+    getDocs(testQuery).then((snapshot) => {
+        console.log('✅ Firestore connection OK - พบข้อมูล', snapshot.size, 'records (ทดสอบ)');
+    }).catch((error) => {
+        console.error('❌ Firestore connection failed:', error);
+        if (error.code === 'resource-exhausted') {
+            console.error('🚨 QUOTA EXCEEDED - ใช้ cached data หรือรอ 24 ชั่วโมง');
+        }
+    });
     
 } catch (error) {
     console.error('❌ Firebase initialization failed:', error);
@@ -50,6 +74,66 @@ try {
     // แสดงข้อความแนะนำ
     if (typeof alert !== 'undefined') {
         alert(`❌ ไม่สามารถเชื่อมต่อ Firebase ได้\n\nกรุณาตรวจสอบ:\n1. Firebase Web Config ใน firebase-real-config.js\n2. ดูคำแนะนำใน FIREBASE_CONFIG_GUIDE.md\n\nError: ${error.message}`);
+    }
+}
+
+// 💾 Local Cache System เพื่อลดการใช้ Firebase Quota
+class FirebaseCache {
+    static set(key, data, expireMinutes = 60) {
+        try {
+            const item = {
+                data: data,
+                timestamp: Date.now(),
+                expire: expireMinutes * 60 * 1000
+            };
+            localStorage.setItem('fb_' + key, JSON.stringify(item));
+            console.log('💾 Cached:', key, `(${expireMinutes} min)`);
+        } catch (error) {
+            console.warn('⚠️ Cache storage failed:', error.message);
+        }
+    }
+    
+    static get(key) {
+        try {
+            const item = localStorage.getItem('fb_' + key);
+            if (!item) return null;
+            
+            const parsed = JSON.parse(item);
+            if (Date.now() > parsed.timestamp + parsed.expire) {
+                localStorage.removeItem('fb_' + key);
+                return null;
+            }
+            
+            console.log('🎯 Using cache:', key);
+            return parsed.data;
+        } catch (error) {
+            console.warn('⚠️ Cache read failed:', error.message);
+            return null;
+        }
+    }
+    
+    static clear(key = null) {
+        if (key) {
+            localStorage.removeItem('fb_' + key);
+        } else {
+            Object.keys(localStorage).forEach(k => {
+                if (k.startsWith('fb_')) localStorage.removeItem(k);
+            });
+        }
+        console.log('🗑️ Cache cleared:', key || 'all');
+    }
+    
+    static info() {
+        const keys = Object.keys(localStorage).filter(k => k.startsWith('fb_'));
+        console.log('📊 Cache info:', keys.length, 'items');
+        return keys.map(key => {
+            const item = JSON.parse(localStorage.getItem(key));
+            const expireIn = (item.timestamp + item.expire - Date.now()) / 1000 / 60;
+            return {
+                key: key.replace('fb_', ''),
+                expireIn: Math.round(expireIn) + ' min'
+            };
+        });
     }
 }
 
@@ -69,10 +153,21 @@ class FirebaseService {
         };
     }
 
-    // ดึงข้อมูลพนักงานทั้งหมด
+    // 🚀 QUOTA OPTIMIZED: ดึงข้อมูลพนักงานทั้งหมด (ใช้ cache)
     async getEmployees() {
         try {
-            const querySnapshot = await getDocs(collection(this.db, this.collections.employees));
+            // ตรวจสอบ cache ก่อน
+            const cached = FirebaseCache.get('employees');
+            if (cached) {
+                console.log('🎯 ใช้ข้อมูลพนักงานจาก cache:', cached.length, 'คน');
+                return cached;
+            }
+
+            // ถ้าไม่มี cache ให้ดึงจาก Firebase (แบบประหยัด)
+            console.log('📡 กำลังดึงข้อมูลพนักงานจาก Firebase...');
+            const q = query(collection(this.db, this.collections.employees), limit(200)); // จำกัด 200 คน
+            const querySnapshot = await getDocs(q);
+            
             const employees = [];
             querySnapshot.forEach((doc) => {
                 employees.push({
@@ -80,18 +175,43 @@ class FirebaseService {
                     ...doc.data()
                 });
             });
-            console.log('✅ ดึงข้อมูลพนักงาน:', employees.length, 'คน');
+            
+            // เก็บใน cache 30 นาที
+            FirebaseCache.set('employees', employees, 30);
+            console.log('✅ ดึงข้อมูลพนักงาน:', employees.length, 'คน (cached 30 min)');
             return employees;
         } catch (error) {
             console.error('❌ Error fetching employees:', error);
+            
+            // ถ้า quota เกิน ให้ใช้ cache เก่า (ถ้ามี)
+            if (error.code === 'resource-exhausted') {
+                console.warn('🚨 Firebase quota exceeded - ใช้ cache ถาวร');
+                const oldCache = FirebaseCache.get('employees');
+                if (oldCache) {
+                    console.log('💾 ใช้ข้อมูลเก่าจาก cache:', oldCache.length, 'คน');
+                    return oldCache;
+                }
+            }
+            
             return [];
         }
     }
 
-    // ดึงข้อมูลเครื่องมือทั้งหมด
+    // 🚀 QUOTA OPTIMIZED: ดึงข้อมูลเครื่องมือทั้งหมด (ใช้ cache)
     async getTools() {
         try {
-            const querySnapshot = await getDocs(collection(this.db, this.collections.tools));
+            // ตรวจสอบ cache ก่อน
+            const cached = FirebaseCache.get('tools');
+            if (cached) {
+                console.log('🎯 ใช้ข้อมูลเครื่องมือจาก cache:', cached.length, 'รายการ');
+                return cached;
+            }
+
+            // ถ้าไม่มี cache ให้ดึงจาก Firebase (แบบ pagination)
+            console.log('📡 กำลังดึงข้อมูลเครื่องมือจาก Firebase...');
+            const q = query(collection(this.db, this.collections.tools), limit(500)); // จำกัด 500 รายการ
+            const querySnapshot = await getDocs(q);
+            
             const tools = [];
             querySnapshot.forEach((doc) => {
                 tools.push({
@@ -99,9 +219,27 @@ class FirebaseService {
                     ...doc.data()
                 });
             });
-            console.log('✅ ดึงข้อมูลเครื่องมือ:', tools.length, 'รายการ');
+            
+            // เก็บใน cache 60 นาที (เครื่องมือเปลี่ยนแปลงน้อย)
+            FirebaseCache.set('tools', tools, 60);
+            console.log('✅ ดึงข้อมูลเครื่องมือ:', tools.length, 'รายการ (cached 60 min)');
             return tools;
         } catch (error) {
+            console.error('❌ Error fetching tools:', error);
+            
+            // ถ้า quota เกิน ให้ใช้ cache เก่า
+            if (error.code === 'resource-exhausted') {
+                console.warn('🚨 Firebase quota exceeded - ใช้ cache ถาวร');
+                const oldCache = FirebaseCache.get('tools');
+                if (oldCache) {
+                    console.log('💾 ใช้ข้อมูลเก่าจาก cache:', oldCache.length, 'รายการ');
+                    return oldCache;
+                }
+            }
+            
+            return [];
+        }
+    }
             console.error('❌ Error fetching tools:', error);
             return [];
         }
@@ -175,15 +313,37 @@ class FirebaseService {
     // เพิ่มคำขอเครื่องมือใหม่
     async addToolRequest(requestData) {
         try {
-            const docRef = await addDoc(collection(this.db, this.collections.toolRequests), {
+            console.log('🔥 Starting to add tool request...');
+            console.log('📝 Request data:', requestData);
+            
+            if (!this.db) {
+                throw new Error('Firestore database is not initialized');
+            }
+            
+            if (!requestData.employee_id || !requestData.requested_tools || requestData.requested_tools.length === 0) {
+                throw new Error('ข้อมูลไม่ครบถ้วน: ต้องมี employee_id และ requested_tools');
+            }
+            
+            const docData = {
                 ...requestData,
                 created_at: new Date(),
-                status: 'pending'
-            });
-            console.log('✅ เพิ่มคำขอใหม่ ID:', docRef.id);
+                status: 'pending',
+                request_id: Date.now().toString() // เพิ่ม request_id สำหรับการอ้างอิง
+            };
+            
+            console.log('💾 Saving to Firestore:', docData);
+            
+            const docRef = await addDoc(collection(this.db, this.collections.toolRequests), docData);
+            
+            console.log('✅ เพิ่มคำขอใหม่สำเร็จ - Document ID:', docRef.id);
             return docRef.id;
         } catch (error) {
             console.error('❌ Error adding tool request:', error);
+            console.error('❌ Error details:', {
+                code: error.code,
+                message: error.message,
+                stack: error.stack
+            });
             throw error;
         }
     }

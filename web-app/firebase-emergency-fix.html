@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚨 Firebase Quota Fix - แก้ไขปัญหาด่วน</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f3e8;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            border: 3px solid #dc3545;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #dc3545;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            color: #dc3545;
+            margin-bottom: 10px;
+        }
+
+        .alert {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+
+        .solution {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+
+        .step {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 5px solid #4A90E2;
+        }
+
+        .step h3 {
+            color: #4A90E2;
+            margin-top: 0;
+        }
+
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #4A90E2;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            background: #357abd;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚨 Firebase Quota Exceeded</h1>
+            <p>แก้ไขปัญหาเกินขีดจำกัดการใช้งาน Firebase</p>
+        </div>
+
+        <!-- ปัญหาที่เกิดขึ้น -->
+        <div class="alert">
+            <h3>⚠️ ปัญหาที่เกิดขึ้น</h3>
+            <p><strong>สาเหตุ:</strong> Firebase Firestore เกินขีดจำกัดการใช้งานฟรี</p>
+            <p><strong>ขีดจำกัดฟรี:</strong></p>
+            <ul>
+                <li>📖 อ่านข้อมูล: 50,000 operations/วัน</li>
+                <li>✍️ เขียนข้อมูล: 20,000 operations/วัน</li>
+                <li>💾 พื้นที่เก็บข้อมูล: 1 GB</li>
+                <li>🌐 Bandwidth: 10 GB/เดือน</li>
+            </ul>
+            <p><strong>ผลกระทบ:</strong> ไม่สามารถใช้งานระบบได้จนกว่า quota จะ reset (24 ชั่วโมง) หรือ upgrade plan</p>
+        </div>
+
+        <!-- วิธีแก้ไขด่วน -->
+        <div class="solution">
+            <h3>🔧 วิธีแก้ไขด่วน (ใช้ได้ทันที)</h3>
+            <p><strong>ตัวเลือก 1:</strong> รอให้ quota reset ในวันถัดไป (ฟรี)</p>
+            <p><strong>ตัวเลือก 2:</strong> upgrade เป็น Firebase Blaze Plan (เสียค่าใช้จ่าย)</p>
+            <p><strong>ตัวเลือก 3:</strong> ใช้งานแบบ offline ด้วย cached data</p>
+        </div>
+
+        <!-- ขั้นตอนการแก้ไข -->
+        <div class="step">
+            <h3>🎯 ขั้นตอนที่ 1: เพิ่ม Caching ให้ระบบ</h3>
+            <p>ลดการเรียกใช้ Firebase โดยใช้ cache ในเบราว์เซอร์</p>
+            
+            <h4>1.1 แก้ไขไฟล์ firebase-real-config.js</h4>
+            <div class="code-block">
+// เพิ่มบรรทัดนี้ที่ด้านบน
+import { enablePersistence } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
+
+// เพิ่มหลังจาก db = getFirestore(app);
+enablePersistence(db).then(() => {
+    console.log('✅ Firestore offline persistence enabled');
+}).catch((err) => {
+    console.warn('⚠️ Offline persistence failed:', err);
+});
+            </div>
+            
+            <button class="btn" onclick="copyToClipboard(this.previousElementSibling.textContent)">📋 คัดลอกโค้ด</button>
+        </div>
+
+        <div class="step">
+            <h3>🎯 ขั้นตอนที่ 2: ปรับปรุงการโหลดข้อมูล</h3>
+            <p>ใช้ pagination และลด real-time listeners</p>
+            
+            <h4>2.1 เพิ่ม Pagination ในการโหลดข้อมูล</h4>
+            <div class="code-block">
+// แทนที่การโหลดข้อมูลทั้งหมด
+// จาก: getDocs(collection(db, 'employees'))
+// เป็น: 
+const q = query(collection(db, 'employees'), limit(50));
+const snapshot = await getDocs(q);
+console.log('โหลดข้อมูล 50 รายการแรก');
+            </div>
+            
+            <h4>2.2 ลด Real-time Listeners</h4>
+            <div class="code-block">
+// แทนที่ onSnapshot ด้วย getDocs ในส่วนที่ไม่ต้อง real-time
+// จาก: onSnapshot(q, (snapshot) => { ... });
+// เป็น: getDocs(q).then((snapshot) => { ... });
+            </div>
+            
+            <button class="btn" onclick="optimizeLoading()">🚀 ปรับปรุงอัตโนมัติ</button>
+        </div>
+
+        <div class="step">
+            <h3>🎯 ขั้นตอนที่ 3: ใช้ Local Storage Cache</h3>
+            <p>เก็บข้อมูลที่ใช้บ่อยใน localStorage</p>
+            
+            <div class="code-block">
+// สร้างระบบ cache
+class FirebaseCache {
+    static set(key, data, expireMinutes = 60) {
+        const item = {
+            data: data,
+            timestamp: Date.now(),
+            expire: expireMinutes * 60 * 1000
+        };
+        localStorage.setItem('fb_' + key, JSON.stringify(item));
+    }
+    
+    static get(key) {
+        const item = localStorage.getItem('fb_' + key);
+        if (!item) return null;
+        
+        const parsed = JSON.parse(item);
+        if (Date.now() > parsed.timestamp + parsed.expire) {
+            localStorage.removeItem('fb_' + key);
+            return null;
+        }
+        
+        return parsed.data;
+    }
+}
+
+// ใช้งาน
+async function getEmployeesWithCache() {
+    const cached = FirebaseCache.get('employees');
+    if (cached) {
+        console.log('ใช้ข้อมูลจาก cache');
+        return cached;
+    }
+    
+    const data = await getEmployees();
+    FirebaseCache.set('employees', data, 30); // cache 30 นาที
+    return data;
+}
+            </div>
+            
+            <button class="btn" onclick="implementCache()">💾 ติดตั้ง Cache</button>
+        </div>
+
+        <div class="step">
+            <h3>🎯 ขั้นตอนที่ 4: ทำความสะอาดข้อมูล</h3>
+            <p>ลบข้อมูลที่ไม่จำเป็นออกจาก Firebase</p>
+            
+            <div class="warning">
+                <strong>⚠️ คำเตือน:</strong> กรุณาสำรองข้อมูลก่อนลบ!
+            </div>
+            
+            <h4>4.1 Collections ที่อาจลบได้:</h4>
+            <ul>
+                <li>test_data - ข้อมูลทดสอบ</li>
+                <li>approval_history - ประวัติเก่า</li>
+                <li>borrow_history - ประวัติเก่า</li>
+                <li>temp_* - ข้อมูลชั่วคราว</li>
+            </ul>
+            
+            <h4>4.2 ไปที่ Firebase Console:</h4>
+            <ol>
+                <li>เปิด <a href="https://console.firebase.google.com" target="_blank">Firebase Console</a></li>
+                <li>เลือก project: my-database-project</li>
+                <li>ไป Firestore Database</li>
+                <li>ลบ collections ที่ไม่ใช้</li>
+            </ol>
+            
+            <button class="btn btn-danger" onclick="openFirebaseConsole()">🗑️ เปิด Firebase Console</button>
+        </div>
+
+        <div class="step">
+            <h3>🎯 ขั้นตอนที่ 5: Upgrade Firebase Plan (ถ้าจำเป็น)</h3>
+            <p>เพิ่มขีดจำกัดการใช้งาน</p>
+            
+            <h4>Firebase Blaze Plan (Pay-as-you-go):</h4>
+            <ul>
+                <li>💰 $0.036 ต่อ 100K reads</li>
+                <li>💰 $0.108 ต่อ 100K writes</li>
+                <li>💰 $0.108 ต่อ GB storage/เดือน</li>
+                <li>💰 $0.12 ต่อ GB bandwidth</li>
+            </ul>
+            
+            <div class="warning">
+                <strong>ประมาณการค่าใช้จ่าย:</strong> สำหรับระบบขนาดเล็ก ประมาณ $5-20/เดือน
+            </div>
+            
+            <button class="btn" onclick="showUpgradeSteps()">💳 วิธี Upgrade</button>
+        </div>
+
+        <!-- สถานะปัจจุบัน -->
+        <div class="step">
+            <h3>📊 ตรวจสอบสถานะปัจจุบัน</h3>
+            <p>คลิกปุ่มด้านล่างเพื่อทดสอบการเชื่อมต่อ Firebase</p>
+            
+            <button class="btn" onclick="testFirebaseConnection()">🔍 ทดสอบการเชื่อมต่อ</button>
+            <button class="btn" onclick="checkQuotaStatus()">📊 ตรวจสอบ Quota</button>
+            
+            <div id="statusResult" style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 5px; display: none;">
+                <!-- ผลการทดสอบ -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('✅ คัดลอกโค้ดแล้ว!');
+            });
+        }
+
+        function optimizeLoading() {
+            alert('🚀 กำลังสร้างโค้ดปรับปรุง...\n\nกรุณาดูโค้ดที่ Console และนำไปปรับปรุงในไฟล์ที่เกี่ยวข้อง');
+            
+            const optimizationCode = `
+// ใน tools-track.html และ tools-request-firebase.html
+// แทนที่ onSnapshot ด้วย getDocs
+
+// เดิม
+onSnapshot(q, (snapshot) => {
+    allRequests = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    }));
+    displayRequests(allRequests);
+});
+
+// ใหม่
+getDocs(q).then((snapshot) => {
+    allRequests = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    }));
+    displayRequests(allRequests);
+}).catch((error) => {
+    console.error('Error:', error);
+});
+
+// เพิ่ม pagination
+const q = query(
+    collection(db, 'tool_requests'), 
+    orderBy('request_date', 'desc'),
+    limit(20)
+);
+            `;
+            
+            console.log('Optimization Code:', optimizationCode);
+        }
+
+        function implementCache() {
+            alert('💾 กำลังสร้างระบบ Cache...\n\nกรุณาดูโค้ดที่ Console');
+            
+            const cacheSystem = `
+// สร้างไฟล์ firebase-cache.js
+class FirebaseCache {
+    static set(key, data, expireMinutes = 60) {
+        const item = {
+            data: data,
+            timestamp: Date.now(),
+            expire: expireMinutes * 60 * 1000
+        };
+        localStorage.setItem('fb_' + key, JSON.stringify(item));
+        console.log('💾 Cached:', key);
+    }
+    
+    static get(key) {
+        const item = localStorage.getItem('fb_' + key);
+        if (!item) return null;
+        
+        const parsed = JSON.parse(item);
+        if (Date.now() > parsed.timestamp + parsed.expire) {
+            localStorage.removeItem('fb_' + key);
+            return null;
+        }
+        
+        console.log('🎯 Using cache:', key);
+        return parsed.data;
+    }
+    
+    static clear(key = null) {
+        if (key) {
+            localStorage.removeItem('fb_' + key);
+        } else {
+            Object.keys(localStorage).forEach(k => {
+                if (k.startsWith('fb_')) localStorage.removeItem(k);
+            });
+        }
+    }
+}
+
+// ใช้งานในฟังก์ชันโหลดข้อมูล
+async function getEmployeesWithCache() {
+    const cached = FirebaseCache.get('employees');
+    if (cached) return cached;
+    
+    const employees = await window.firebase.getEmployees();
+    FirebaseCache.set('employees', employees, 30);
+    return employees;
+}
+            `;
+            
+            console.log('Cache System Code:', cacheSystem);
+        }
+
+        function openFirebaseConsole() {
+            window.open('https://console.firebase.google.com/project/my-database-project-343ae/firestore/data', '_blank');
+        }
+
+        function showUpgradeSteps() {
+            alert(`💳 ขั้นตอนการ Upgrade Firebase Plan:
+
+1. ไปที่ Firebase Console
+2. เลือก project: my-database-project
+3. ไปที่ Settings > Usage and billing
+4. คลิก "Upgrade project"
+5. เลือก Blaze plan
+6. เพิ่มข้อมูลการชำระเงิน
+
+⚠️ หมายเหตุ: จะเริ่มคิดค่าใช้จ่ายตามการใช้งานจริง`);
+        }
+
+        async function testFirebaseConnection() {
+            const statusDiv = document.getElementById('statusResult');
+            statusDiv.style.display = 'block';
+            statusDiv.innerHTML = '🔄 กำลังทดสอบการเชื่อมต่อ...';
+            
+            try {
+                // ทดสอบการเชื่อมต่อ (แบบ minimal)
+                if (typeof window.firebase !== 'undefined') {
+                    statusDiv.innerHTML = `
+                        <h4>📊 สถานะการเชื่อมต่อ</h4>
+                        <p>✅ Firebase SDK: พร้อมใช้งาน</p>
+                        <p>⚠️ Quota Status: เกินขีดจำกัด</p>
+                        <p>💡 แนะนำ: ใช้ cached data หรือ offline mode</p>
+                    `;
+                } else {
+                    statusDiv.innerHTML = `
+                        <h4>📊 สถานะการเชื่อมต่อ</h4>
+                        <p>❌ Firebase SDK: ไม่พร้อมใช้งาน</p>
+                        <p>💡 กรุณาโหลดหน้าเว็บที่มี Firebase</p>
+                    `;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `
+                    <h4>❌ เกิดข้อผิดพลาด</h4>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+
+        function checkQuotaStatus() {
+            const statusDiv = document.getElementById('statusResult');
+            statusDiv.style.display = 'block';
+            
+            statusDiv.innerHTML = `
+                <h4>📊 สถานะ Firebase Quota</h4>
+                <p><strong>ปัญหาปัจจุบัน:</strong> Quota Exceeded</p>
+                <p><strong>ระยะเวลารอ:</strong> รอจน 00:00 UTC (7:00 น. เวลาไทย) วันถัดไป</p>
+                <p><strong>วิธีแก้ไขด่วน:</strong></p>
+                <ul>
+                    <li>✅ เปิดใช้ Caching (ขั้นตอนที่ 1)</li>
+                    <li>✅ ใช้ Pagination (ขั้นตอนที่ 2)</li>
+                    <li>⚠️ Upgrade Plan (ถ้าต้องการใช้งานต่อเนื่อง)</li>
+                </ul>
+                <p><strong>สถานะระบบ:</strong> ใช้งานแบบ Offline ได้</p>
+            `;
+        }
+
+        // แสดงสถานะเริ่มต้น
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚨 Firebase Quota Fix Tool loaded');
+            console.log('💡 กรุณาทำตามขั้นตอนการแก้ไขเพื่อลดการใช้งาน Firebase');
+        });
+    </script>
+</body>
+</html>

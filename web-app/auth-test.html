@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ทดสอบระบบสิทธิ์การเข้าถึง</title>
+    <script src="navbar.js"></script>
+    <script src="auth-system.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f3e8;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            border: 3px solid #333;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #333;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            color: #4A90E2;
+            margin-bottom: 10px;
+        }
+
+        .test-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 2px solid #e9ecef;
+        }
+
+        .test-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .permission-test {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .permission-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .permission-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .permission-status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .permission-allowed {
+            background: #28a745;
+            color: white;
+        }
+
+        .permission-denied {
+            background: #dc3545;
+            color: white;
+        }
+
+        .login-section {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn-primary {
+            background: #4A90E2;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #357abd;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .user-info-display {
+            background: #e7f3ff;
+            border: 1px solid #4A90E2;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .user-info-display h4 {
+            color: #4A90E2;
+            margin-bottom: 10px;
+        }
+
+        .test-input {
+            padding: 10px;
+            border: 2px solid #4A90E2;
+            border-radius: 8px;
+            font-size: 16px;
+            margin: 5px;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ ทดสอบระบบสิทธิ์การเข้าถึง</h1>
+            <p>Authentication & Authorization System Test</p>
+        </div>
+
+        <!-- ส่วนข้อมูลผู้ใช้ -->
+        <div class="test-section">
+            <h3>👤 ข้อมูลผู้ใช้ปัจจุบัน</h3>
+            <div id="currentUserInfo" class="user-info-display">
+                <p>ยังไม่ได้เข้าสู่ระบบ</p>
+            </div>
+        </div>
+
+        <!-- ส่วนเข้าสู่ระบบ -->
+        <div class="test-section">
+            <h3>🔐 การเข้าสู่ระบบ</h3>
+            <div class="login-section">
+                <input type="text" id="employeeIdInput" class="test-input" placeholder="รหัสพนักงาน" />
+                <button class="btn btn-primary" onclick="testLogin()">เข้าสู่ระบบ</button>
+                <button class="btn btn-danger" onclick="testLogout()">ออกจากระบบ</button>
+            </div>
+        </div>
+
+        <!-- ทดสอบสิทธิ์ Admin -->
+        <div class="test-section" data-admin-only>
+            <h3>👨‍💼 สิทธิ์ Admin (เจ้าหน้าที่สโตว์/ธุรการสโตว์)</h3>
+            <div class="permission-test" id="adminPermissions">
+                <!-- จะเติมข้อมูลด้วย JavaScript -->
+            </div>
+        </div>
+
+        <!-- ทดสอบสิทธิ์ User -->
+        <div class="test-section" data-user-only>
+            <h3>👥 สิทธิ์ User (พนักงานทั่วไป)</h3>
+            <div class="permission-test" id="userPermissions">
+                <!-- จะเติมข้อมูลด้วย JavaScript -->
+            </div>
+        </div>
+
+        <!-- ส่วนทดสอบการเข้าถึงหน้าต่างๆ -->
+        <div class="test-section">
+            <h3>🔗 ทดสอบการเข้าถึงหน้าต่างๆ</h3>
+            <div class="login-section">
+                <button class="btn btn-primary" onclick="testPageAccess('tools-track.html')">หน้า Tools Track (Admin)</button>
+                <button class="btn btn-primary" onclick="testPageAccess('tools-request-firebase.html')">หน้า Tools Request (User)</button>
+                <button class="btn btn-primary" onclick="testPageAccess('admin-firebase.html')">หน้า Admin (Admin)</button>
+            </div>
+        </div>
+
+        <!-- ผลการทดสอบ -->
+        <div class="test-section">
+            <h3>📊 ผลการทดสอบ</h3>
+            <div id="testResults" class="user-info-display">
+                <p>ยังไม่มีผลการทดสอบ</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module" src="firebase-real-config.js"></script>
+    
+    <script type="module">
+        // รอให้ Firebase พร้อมใช้งาน
+        window.addEventListener('load', async () => {
+            console.log('🚀 เริ่มต้นระบบทดสอบ');
+            
+            // รอให้ Firebase Service พร้อม
+            await waitForFirebase();
+            
+            // ตรวจสอบ session ที่มีอยู่
+            window.authSystem.restoreSession();
+            
+            // อัพเดทข้อมูลผู้ใช้
+            updateUserInfo();
+            updatePermissionTests();
+            
+            // ปรับแต่ง UI
+            window.authSystem.adjustUIForPermissions();
+        });
+
+        function waitForFirebase() {
+            return new Promise((resolve) => {
+                const checkFirebase = () => {
+                    if (window.firebase) {
+                        resolve();
+                    } else {
+                        setTimeout(checkFirebase, 100);
+                    }
+                };
+                checkFirebase();
+            });
+        }
+
+        // ทดสอบการเข้าสู่ระบบ
+        async function testLogin() {
+            const employeeId = document.getElementById('employeeIdInput').value;
+            if (!employeeId) {
+                alert('กรุณาใส่รหัสพนักงาน');
+                return;
+            }
+
+            addTestResult('กำลังทดสอบการเข้าสู่ระบบด้วยรหัส: ' + employeeId);
+
+            try {
+                const result = await window.authSystem.login(employeeId);
+                if (result.success) {
+                    addTestResult('✅ เข้าสู่ระบบสำเร็จ: ' + result.user.full_name + ' (สิทธิ์: ' + result.permissions.role + ')');
+                    updateUserInfo();
+                    updatePermissionTests();
+                    window.authSystem.adjustUIForPermissions();
+                } else {
+                    addTestResult('❌ เข้าสู่ระบบไม่สำเร็จ: ' + result.error);
+                }
+            } catch (error) {
+                addTestResult('❌ เกิดข้อผิดพลาด: ' + error.message);
+            }
+        }
+
+        // ทดสอบการออกจากระบบ
+        function testLogout() {
+            window.authSystem.logout();
+            addTestResult('🚪 ออกจากระบบแล้ว');
+            updateUserInfo();
+            updatePermissionTests();
+            window.authSystem.adjustUIForPermissions();
+        }
+
+        // อัพเดทข้อมูลผู้ใช้
+        function updateUserInfo() {
+            const userInfoDiv = document.getElementById('currentUserInfo');
+            const currentUser = window.authSystem.getCurrentUser();
+            const permissions = window.authSystem.getUserPermissions();
+
+            if (currentUser) {
+                userInfoDiv.innerHTML = `
+                    <h4>ข้อมูลผู้ใช้:</h4>
+                    <p><strong>ชื่อ:</strong> ${currentUser.full_name}</p>
+                    <p><strong>รหัสพนักงาน:</strong> ${currentUser.employee_id}</p>
+                    <p><strong>หน่วยงาน:</strong> ${currentUser.department || '-'}</p>
+                    <p><strong>สิทธิ์:</strong> <span class="role-badge role-${permissions.role}">${permissions.role === 'admin' ? 'เจ้าหน้าที่' : 'พนักงาน'}</span></p>
+                    <p><strong>เวลาเข้าสู่ระบบ:</strong> ${currentUser.loginTime ? new Date(currentUser.loginTime).toLocaleString('th-TH') : '-'}</p>
+                `;
+            } else {
+                userInfoDiv.innerHTML = '<p>ยังไม่ได้เข้าสู่ระบบ</p>';
+            }
+        }
+
+        // อัพเดทการทดสอบสิทธิ์
+        function updatePermissionTests() {
+            const adminPermissions = [
+                { name: 'ดู Dashboard', permission: 'canViewDashboard' },
+                { name: 'จัดการคำขอ', permission: 'canManageRequests' },
+                { name: 'ติดตามเครื่องมือ', permission: 'canTrackTools' },
+                { name: 'สร้างธุรกรรม', permission: 'canCreateTransactions' },
+                { name: 'ค้นหาพนักงาน', permission: 'canSearchEmployees' },
+                { name: 'ค้นหาเครื่องมือ', permission: 'canSearchTools' },
+                { name: 'ดูรายงาน', permission: 'canViewReports' },
+                { name: 'อนุมัติ/ปฏิเสธ', permission: 'canApproveRejects' }
+            ];
+
+            const userPermissions = [
+                { name: 'ดูคำขอของตัวเอง', permission: 'canViewOwnRequests' },
+                { name: 'สร้างคำขอ', permission: 'canCreateRequests' },
+                { name: 'ดูประวัติตัวเอง', permission: 'canViewOwnHistory' },
+                { name: 'ตรวจสอบวันคืน', permission: 'canCheckReturnDates' }
+            ];
+
+            updatePermissionSection('adminPermissions', adminPermissions);
+            updatePermissionSection('userPermissions', userPermissions);
+        }
+
+        function updatePermissionSection(sectionId, permissions) {
+            const section = document.getElementById(sectionId);
+            if (!section) return;
+
+            section.innerHTML = permissions.map(perm => {
+                const hasPermission = window.authSystem.hasPermission(perm.permission);
+                return `
+                    <div class="permission-item">
+                        <span class="permission-name">${perm.name}</span>
+                        <span class="permission-status ${hasPermission ? 'permission-allowed' : 'permission-denied'}">
+                            ${hasPermission ? 'อนุญาต' : 'ไม่อนุญาต'}
+                        </span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ทดสอบการเข้าถึงหน้าต่างๆ
+        function testPageAccess(page) {
+            const requiredPermissions = {
+                'tools-track.html': 'canViewDashboard',
+                'tools-request-firebase.html': 'canCreateRequests',
+                'admin-firebase.html': 'canManageRequests'
+            };
+
+            const permission = requiredPermissions[page];
+            const hasAccess = window.authSystem.hasPermission(permission);
+
+            if (hasAccess) {
+                addTestResult(`✅ สามารถเข้าถึง ${page} ได้`);
+                // window.open(page, '_blank');
+            } else {
+                addTestResult(`❌ ไม่สามารถเข้าถึง ${page} ได้ (ต้องการสิทธิ์: ${permission})`);
+            }
+        }
+
+        // เพิ่มผลการทดสอบ
+        function addTestResult(message) {
+            const resultsDiv = document.getElementById('testResults');
+            const currentTime = new Date().toLocaleTimeString('th-TH');
+            
+            const existingContent = resultsDiv.innerHTML;
+            if (existingContent.includes('ยังไม่มีผลการทดสอบ')) {
+                resultsDiv.innerHTML = '';
+            }
+            
+            resultsDiv.innerHTML += `<p><strong>${currentTime}:</strong> ${message}</p>`;
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+
+        // ทดสอบรหัสพนักงานตัวอย่าง
+        window.testSampleEmployees = function() {
+            const samples = [
+                '100007', // ตัวอย่างพนักงานทั่วไป
+                'STORE001', // ตัวอย่างพนักงานสโตว์
+                'ADMIN001' // ตัวอย่าง Admin
+            ];
+
+            samples.forEach(id => {
+                console.log(`ทดสอบด้วยรหัส: ${id}`);
+            });
+        };
+    </script>
+</body>
+</html>

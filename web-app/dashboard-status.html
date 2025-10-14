@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - ติดตามสถานะเครื่องมือ</title>
+    <script src="navbar.js"></script>
+    <script src="auth-system.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f3e8;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .page-wrapper {
+            padding: 20px;
+            margin-top: 80px;
+            min-height: calc(100vh - 80px);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #f5f3e8;
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            border: 3px solid #333;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #333;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .header h1::before {
+            content: "📊";
+            font-size: 36px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        /* แสดงข้อมูลผู้ใช้ */
+        .user-info {
+            display: flex;
+            justify-content: center;
+            margin: 15px 0;
+        }
+
+        .access-denied {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        /* Dashboard Cards */
+        .stats-dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            color: #333;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            border: 2px solid #e9ecef;
+            position: relative;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+        }
+
+        .stat-card .icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .stat-card h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #666;
+        }
+
+        .stat-card .number {
+            font-size: 42px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .stat-card.ready {
+            border-left: 5px solid #17a2b8;
+        }
+
+        .stat-card.ready .icon {
+            color: #17a2b8;
+        }
+
+        .stat-card.in-use {
+            border-left: 5px solid #28a745;
+        }
+
+        .stat-card.in-use .icon {
+            color: #28a745;
+        }
+
+        .stat-card.broken {
+            border-left: 5px solid #dc3545;
+        }
+
+        .stat-card.broken .icon {
+            color: #dc3545;
+        }
+
+        .stat-card.maintenance {
+            border-left: 5px solid #ffc107;
+        }
+
+        .stat-card.maintenance .icon {
+            color: #ffc107;
+        }
+
+        .stat-card.total {
+            border-left: 5px solid #6f42c1;
+        }
+
+        .stat-card.total .icon {
+            color: #6f42c1;
+        }
+
+        .stat-card.users {
+            border-left: 5px solid #fd7e14;
+        }
+
+        .stat-card.users .icon {
+            color: #fd7e14;
+        }
+
+        /* Chart Section */
+        .chart-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            border: 2px solid #e9ecef;
+        }
+
+        .chart-container h3 {
+            color: #333;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .donut-chart-wrapper {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .chart-center-text {
+            position: absolute;
+            text-align: center;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .chart-center-text .total-number {
+            font-size: 48px;
+            font-weight: bold;
+            color: #333;
+            display: block;
+        }
+
+        .chart-center-text .total-label {
+            font-size: 16px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* Table Section */
+        .table-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 2px solid #e9ecef;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            color: #333;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4A90E2;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .tools-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .tools-table th {
+            background: #4A90E2;
+            color: white;
+            padding: 15px 12px;
+            font-weight: 600;
+            text-align: left;
+            border: 1px solid #357abd;
+            font-size: 14px;
+        }
+
+        .tools-table td {
+            padding: 12px;
+            border: 1px solid #e9ecef;
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        .tools-table tbody tr {
+            background: white;
+            transition: background-color 0.3s ease;
+        }
+
+        .tools-table tbody tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .tools-table tbody tr:hover {
+            background: #e3f2fd;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-block;
+        }
+
+        .status-ready {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .status-in-use {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-broken {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-maintenance {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        /* Filters */
+        .filters-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid #e9ecef;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .form-group select {
+            padding: 12px;
+            border: 2px solid #ced4da;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group select:focus {
+            outline: none;
+            border-color: #4A90E2;
+            box-shadow: 0 0 0 3px rgba(74,144,226,0.1);
+        }
+
+        .btn-filter {
+            padding: 12px 25px;
+            background: #4A90E2;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            height: fit-content;
+        }
+
+        .btn-filter:hover {
+            background: #357abd;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74,144,226,0.4);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #6c757d;
+            font-size: 18px;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .chart-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-dashboard {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+            }
+
+            .filters-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .tools-table {
+                font-size: 12px;
+            }
+
+            .tools-table th,
+            .tools-table td {
+                padding: 8px 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <div class="container">
+            <div class="header">
+                <h1>Dashboard - ติดตามสถานะเครื่องมือ</h1>
+                <p>ภาพรวมระบบจัดการเครื่องมือและอุปกรณ์</p>
+                
+                <!-- แสดงข้อมูลผู้ใช้และสิทธิ์ -->
+                <div id="userInfo" class="user-info"></div>
+                
+                <!-- ข้อความสำหรับผู้ใช้ที่ไม่มีสิทธิ์ -->
+                <div id="accessDenied" class="access-denied" style="display: none;">
+                    <h3>⚠️ ไม่มีสิทธิ์เข้าถึง</h3>
+                    <p>หน้านี้สำหรับ <strong>เจ้าหน้าที่สโตว์/ธุรการสโตว์</strong> เท่านั้น</p>
+                    <p>หากคุณเป็นพนักงานทั่วไป กรุณาใช้ <a href="tools-request-firebase.html">ระบบขอเบิกเครื่องมือ</a> แทน</p>
+                </div>
+            </div>
+
+            <!-- Dashboard สถิติ - เฉพาะ Admin เท่านั้น -->
+            <div class="stats-dashboard" data-admin-only>
+                <div class="stat-card ready">
+                    <span class="icon">✅</span>
+                    <h3>พร้อมใช้งาน</h3>
+                    <div class="number" id="readyCount">-</div>
+                    <p>เครื่องมือที่พร้อมใช้งานในระบบ</p>
+                </div>
+                <div class="stat-card in-use">
+                    <span class="icon">🔧</span>
+                    <h3>ใช้งานอยู่</h3>
+                    <div class="number" id="inUseCount">-</div>
+                    <p>เครื่องมือที่กำลังถูกใช้งาน</p>
+                </div>
+                <div class="stat-card broken">
+                    <span class="icon">❌</span>
+                    <h3>เสียหาย</h3>
+                    <div class="number" id="brokenCount">-</div>
+                    <p>เครื่องมือที่ชำรุดเสียหาย</p>
+                </div>
+                <div class="stat-card maintenance">
+                    <span class="icon">⚠️</span>
+                    <h3>กำลังตรวจสอบ/ซ่อม</h3>
+                    <div class="number" id="maintenanceCount">-</div>
+                    <p>เครื่องมือที่อยู่ระหว่างการซ่อมแซม</p>
+                </div>
+                <div class="stat-card total">
+                    <span class="icon">📦</span>
+                    <h3>จำนวนเครื่องมือทั้งหมด</h3>
+                    <div class="number" id="totalTools">-</div>
+                    <p>เครื่องมือทั้งหมดในระบบ</p>
+                </div>
+                <div class="stat-card users">
+                    <span class="icon">👥</span>
+                    <h3>ใช้งานอยู่</h3>
+                    <div class="number" id="activeUsers">-</div>
+                    <p>พนักงานที่กำลังใช้เครื่องมือ</p>
+                </div>
+            </div>
+
+            <!-- กราฟและแผนภูมิ - เฉพาะ Admin เท่านั้น -->
+            <div class="chart-section" data-admin-only>
+                <!-- Donut Chart -->
+                <div class="chart-container">
+                    <h3>สถานะเครื่องมือ</h3>
+                    <div class="donut-chart-wrapper">
+                        <canvas id="statusDonutChart" width="300" height="300"></canvas>
+                        <div class="chart-center-text">
+                            <span class="total-number" id="chartTotalNumber">-</span>
+                            <span class="total-label">รวมทั้งหมด</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bar Chart -->
+                <div class="chart-container">
+                    <h3>การใช้งานตามแผนก</h3>
+                    <canvas id="departmentChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+
+            <!-- ตัวกรองข้อมูล - เฉพาะ Admin เท่านั้น -->
+            <div class="filters-section" data-admin-only>
+                <div class="filters-grid">
+                    <div class="form-group">
+                        <label for="statusFilter">สถานะ</label>
+                        <select id="statusFilter">
+                            <option value="">ทั้งหมด</option>
+                            <option value="พร้อมใช้งาน">พร้อมใช้งาน</option>
+                            <option value="ใช้งานอยู่">ใช้งานอยู่</option>
+                            <option value="เสียหาย">เสียหาย</option>
+                            <option value="กำลังตรวจสอบ/ซ่อม">กำลังตรวจสอบ/ซ่อม</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="categoryFilter">หมวดหมู่</label>
+                        <select id="categoryFilter">
+                            <option value="">ทั้งหมด</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="locationFilter">สถานที่</label>
+                        <select id="locationFilter">
+                            <option value="">ทั้งหมด</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn-filter" onclick="applyFilters()">กรองข้อมูล</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ตารางแสดงรายละเอียดเครื่องมือ - เฉพาะ Admin เท่านั้น -->
+            <div class="table-section" data-admin-only>
+                <h2 class="section-title">รายละเอียดเครื่องมือ</h2>
+                <div class="table-container">
+                    <table class="tools-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>ชื่อเครื่องมือ</th>
+                                <th>Old Code</th>
+                                <th>หมวดหมู่</th>
+                                <th>ผู้ใช้เครื่องมือ</th>
+                                <th>จำนวนทั้งหมด</th>
+                                <th>สถานะทั่วไป</th>
+                                <th>สถานะเครื่องมือ</th>
+                                <th>สถานะการตรวจสอบ/ซ่อม</th>
+                                <th>จำนวน</th>
+                            </tr>
+                        </thead>
+                        <tbody id="toolsTableBody">
+                            <tr>
+                                <td colspan="10" class="loading">กำลังโหลดข้อมูล...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module" src="firebase-emergency-config.js"></script>
+    
+    <script type="module">
+        // Global variables
+        let allTools = [];
+        let filteredTools = [];
+        let statusChart = null;
+        let departmentChart = null;
+
+        // เริ่มต้นระบบเมื่อหน้าเว็บโหลดเสร็จ
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🚀 เริ่มต้น Dashboard ติดตามสถานะเครื่องมือ');
+            
+            // รอให้ Firebase Service พร้อม
+            await waitForFirebase();
+            
+            // ตรวจสอบสิทธิ์การเข้าถึง
+            await checkAccess();
+        });
+
+        // รอให้ Firebase Service พร้อมใช้งาน
+        function waitForFirebase() {
+            return new Promise((resolve) => {
+                const checkFirebase = () => {
+                    if (window.firebase) {
+                        resolve();
+                    } else {
+                        setTimeout(checkFirebase, 100);
+                    }
+                };
+                checkFirebase();
+            });
+        }
+
+        // ตรวจสอบสิทธิ์การเข้าถึง
+        async function checkAccess() {
+            try {
+                // พยายามกู้คืน session ที่มีอยู่
+                const hasSession = window.authSystem.restoreSession();
+                
+                if (!hasSession) {
+                    // ถ้าไม่มี session ให้ถามรหัสพนักงาน
+                    const employeeId = prompt('กรุณาใส่รหัสพนักงานเพื่อเข้าสู่ระบบ:');
+                    if (!employeeId) {
+                        showAccessDenied('ไม่ได้ระบุรหัสพนักงาน');
+                        return;
+                    }
+                    
+                    const loginResult = await window.authSystem.login(employeeId);
+                    if (!loginResult.success) {
+                        showAccessDenied(loginResult.error);
+                        return;
+                    }
+                }
+                
+                // ตรวจสอบสิทธิ์ Admin
+                if (!window.authSystem.hasPermission('canViewDashboard')) {
+                    showAccessDenied('คุณไม่มีสิทธิ์เข้าถึงหน้านี้ หน้านี้สำหรับเจ้าหน้าที่สโตว์/ธุรการสโตว์เท่านั้น');
+                    return;
+                }
+                
+                // ถ้ามีสิทธิ์ให้แสดงข้อมูล
+                await initializeDashboard();
+                
+            } catch (error) {
+                console.error('❌ เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์:', error);
+                showAccessDenied('เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์');
+            }
+        }
+
+        // แสดงข้อความไม่มีสิทธิ์เข้าถึง
+        function showAccessDenied(message) {
+            const accessDeniedDiv = document.getElementById('accessDenied');
+            if (accessDeniedDiv) {
+                accessDeniedDiv.innerHTML = `
+                    <h3>⚠️ ไม่มีสิทธิ์เข้าถึง</h3>
+                    <p>${message}</p>
+                    <p>หากคุณเป็นพนักงานทั่วไป กรุณาใช้ <a href="tools-request-firebase.html">ระบบขอเบิกเครื่องมือ</a> แทน</p>
+                    <button onclick="location.reload()" class="btn-filter">ลองใหม่</button>
+                `;
+                accessDeniedDiv.style.display = 'block';
+            }
+        }
+
+        // เริ่มต้น Dashboard หลังจากตรวจสอบสิทธิ์แล้ว
+        async function initializeDashboard() {
+            // ปรับแต่ง UI ตามสิทธิ์
+            window.authSystem.adjustUIForPermissions();
+            
+            // โหลดข้อมูล
+            await loadToolsData();
+            
+            // สร้างกราฟ
+            createCharts();
+            
+            // อัพเดทสถิติ
+            updateStatistics();
+            
+            // แสดงตาราง
+            displayToolsTable();
+            
+            // เติมข้อมูลตัวกรอง
+            populateFilters();
+        }
+
+        // โหลดข้อมูลเครื่องมือ
+        async function loadToolsData() {
+            try {
+                console.log('📡 กำลังโหลดข้อมูลเครื่องมือ...');
+                allTools = await window.firebase.getTools();
+                
+                // เพิ่มสถานะสุ่มสำหรับ Demo (เนื่องจากข้อมูลจริงอาจไม่มี status)
+                allTools = allTools.map(tool => ({
+                    ...tool,
+                    status: tool.status || getRandomStatus(),
+                    category: tool.category || 'เครื่องมือทั่วไป',
+                    location: tool.location || 'คลังสินค้าหลัก',
+                    current_user: tool.current_user || (tool.status === 'ใช้งานอยู่' ? 'พนักงาน A' : '-'),
+                    quantity: tool.quantity || 1
+                }));
+                
+                filteredTools = [...allTools];
+                console.log('✅ โหลดข้อมูลเครื่องมือ:', allTools.length, 'รายการ');
+                
+            } catch (error) {
+                console.error('❌ เกิดข้อผิดพลาดในการโหลดข้อมูล:', error);
+                document.getElementById('toolsTableBody').innerHTML = 
+                    '<tr><td colspan="10" class="error">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
+            }
+        }
+
+        // สุ่มสถานะสำหรับ Demo
+        function getRandomStatus() {
+            const statuses = ['พร้อมใช้งาน', 'ใช้งานอยู่', 'เสียหาย', 'กำลังตรวจสอบ/ซ่อม'];
+            const weights = [60, 25, 10, 5]; // เปอร์เซ็นต์โอกาส
+            
+            const random = Math.random() * 100;
+            let cumulative = 0;
+            
+            for (let i = 0; i < weights.length; i++) {
+                cumulative += weights[i];
+                if (random < cumulative) {
+                    return statuses[i];
+                }
+            }
+            
+            return statuses[0];
+        }
+
+        // อัพเดทสถิติ
+        function updateStatistics() {
+            const ready = filteredTools.filter(tool => tool.status === 'พร้อมใช้งาน').length;
+            const inUse = filteredTools.filter(tool => tool.status === 'ใช้งานอยู่').length;
+            const broken = filteredTools.filter(tool => tool.status === 'เสียหาย').length;
+            const maintenance = filteredTools.filter(tool => tool.status === 'กำลังตรวจสอบ/ซ่อม').length;
+            const total = filteredTools.length;
+            const activeUsers = new Set(filteredTools.filter(tool => tool.current_user && tool.current_user !== '-').map(tool => tool.current_user)).size;
+
+            document.getElementById('readyCount').textContent = ready;
+            document.getElementById('inUseCount').textContent = inUse;
+            document.getElementById('brokenCount').textContent = broken;
+            document.getElementById('maintenanceCount').textContent = maintenance;
+            document.getElementById('totalTools').textContent = total;
+            document.getElementById('activeUsers').textContent = activeUsers;
+            document.getElementById('chartTotalNumber').textContent = total;
+
+            // อัพเดทกราห
+            if (statusChart) {
+                statusChart.data.datasets[0].data = [ready, inUse, broken, maintenance];
+                statusChart.update();
+            }
+        }
+
+        // สร้างกราฟ
+        function createCharts() {
+            createStatusDonutChart();
+            createDepartmentChart();
+        }
+
+        // สร้าง Donut Chart
+        function createStatusDonutChart() {
+            const ctx = document.getElementById('statusDonutChart').getContext('2d');
+            
+            statusChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['พร้อมใช้งาน', 'ใช้งานอยู่', 'เสียหาย', 'กำลังตรวจสอบ/ซ่อม'],
+                    datasets: [{
+                        data: [0, 0, 0, 0],
+                        backgroundColor: [
+                            '#17a2b8',  // พร้อมใช้งาน - สีฟ้า
+                            '#28a745',  // ใช้งานอยู่ - สีเขียว
+                            '#dc3545',  // เสียหาย - สีแดง
+                            '#ffc107'   // กำลังตรวจสอบ/ซ่อม - สีเหลือง
+                        ],
+                        borderWidth: 3,
+                        borderColor: '#fff',
+                        hoverOffset: 15
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                    return `${label}: ${value} รายการ (${percentage}%)`;
+                                }
+                            }
+                        }
+                    },
+                    onClick: (event, activeElements) => {
+                        if (activeElements.length > 0) {
+                            const index = activeElements[0].index;
+                            const status = statusChart.data.labels[index];
+                            filterByStatus(status);
+                        }
+                    }
+                }
+            });
+        }
+
+        // สร้าง Bar Chart แผนก
+        function createDepartmentChart() {
+            const ctx = document.getElementById('departmentChart').getContext('2d');
+            
+            // จำลองข้อมูลแผนก
+            const departmentData = {
+                'แผนกเครื่องมือ': 25,
+                'แผนกก่อสร้าง': 20,
+                'แผนกไฟฟ้า': 18,
+                'แผนกสำนักงาน': 15,
+                'แผนกอื่นๆ': 12
+            };
+
+            departmentChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(departmentData),
+                    datasets: [{
+                        label: 'จำนวนเครื่องมือ',
+                        data: Object.values(departmentData),
+                        backgroundColor: [
+                            '#4A90E2',
+                            '#50c878',
+                            '#ff6b6b',
+                            '#feca57',
+                            '#a55eea'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 5
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // กรองตามสถานะจากการคลิก Chart
+        function filterByStatus(status) {
+            document.getElementById('statusFilter').value = status;
+            applyFilters();
+        }
+
+        // แสดงตาราง
+        function displayToolsTable() {
+            const tbody = document.getElementById('toolsTableBody');
+            
+            if (filteredTools.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" class="loading">ไม่พบข้อมูลเครื่องมือ</td></tr>';
+                return;
+            }
+
+            const rows = filteredTools.map((tool, index) => {
+                const statusClass = tool.status.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+                
+                return `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${tool.tool_name || '-'}</td>
+                        <td>${tool.old_code || tool.id}</td>
+                        <td>${tool.category}</td>
+                        <td>${tool.current_user}</td>
+                        <td>${tool.quantity}</td>
+                        <td><span class="status-badge status-${getStatusClass(tool.status)}">${tool.status}</span></td>
+                        <td>${tool.status}</td>
+                        <td>-</td>
+                        <td>1</td>
+                    </tr>
+                `;
+            }).join('');
+
+            tbody.innerHTML = rows;
+        }
+
+        // แปลงสถานะเป็น CSS class
+        function getStatusClass(status) {
+            switch (status) {
+                case 'พร้อมใช้งาน': return 'ready';
+                case 'ใช้งานอยู่': return 'in-use';
+                case 'เสียหาย': return 'broken';
+                case 'กำลังตรวจสอบ/ซ่อม': return 'maintenance';
+                default: return 'ready';
+            }
+        }
+
+        // เติมข้อมูลตัวกรอง
+        function populateFilters() {
+            // หมวดหมู่
+            const categories = [...new Set(allTools.map(tool => tool.category))];
+            const categorySelect = document.getElementById('categoryFilter');
+            categorySelect.innerHTML = '<option value="">ทั้งหมด</option>' +
+                categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+
+            // สถานที่
+            const locations = [...new Set(allTools.map(tool => tool.location))];
+            const locationSelect = document.getElementById('locationFilter');
+            locationSelect.innerHTML = '<option value="">ทั้งหมด</option>' +
+                locations.map(loc => `<option value="${loc}">${loc}</option>`).join('');
+        }
+
+        // ใช้ตัวกรอง
+        window.applyFilters = function() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const locationFilter = document.getElementById('locationFilter').value;
+
+            filteredTools = allTools.filter(tool => {
+                const statusMatch = !statusFilter || tool.status === statusFilter;
+                const categoryMatch = !categoryFilter || tool.category === categoryFilter;
+                const locationMatch = !locationFilter || tool.location === locationFilter;
+
+                return statusMatch && categoryMatch && locationMatch;
+            });
+
+            updateStatistics();
+            displayToolsTable();
+        };
+    </script>
+</body>
+</html>

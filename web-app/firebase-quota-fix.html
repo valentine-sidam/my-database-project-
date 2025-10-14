@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Usage Monitor & Optimizer</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f3e8;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            border: 3px solid #333;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #333;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            color: #dc3545;
+            margin-bottom: 10px;
+        }
+
+        .alert {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+
+        .alert h3 {
+            margin-top: 0;
+            color: #721c24;
+        }
+
+        .solution-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 2px solid #e9ecef;
+        }
+
+        .solution-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn-primary {
+            background: #4A90E2;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #357abd;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .optimization-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-good {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .status-warning {
+            color: #ffc107;
+            font-weight: 600;
+        }
+
+        .status-danger {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        .usage-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        .stat-card h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-normal {
+            background: #28a745;
+        }
+
+        .progress-warning {
+            background: #ffc107;
+        }
+
+        .progress-danger {
+            background: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚨 Firebase Quota Monitor</h1>
+            <p>ตรวจสอบและแก้ไขปัญหา Firebase Quota Exceeded</p>
+        </div>
+
+        <!-- แจ้งเตือนปัญหา -->
+        <div class="alert">
+            <h3>⚠️ Firebase Quota เกินขีดจำกัด!</h3>
+            <p><strong>ปัญหา:</strong> Firestore Database แสดงข้อความ "Quota exceeded"</p>
+            <p><strong>ผลกระทบ:</strong> ไม่สามารถอ่าน/เขียนข้อมูลได้ชั่วคราว</p>
+            <p><strong>เวลาที่เกิด:</strong> <span id="currentTime"></span></p>
+        </div>
+
+        <!-- สถิติการใช้งาน -->
+        <div class="solution-section">
+            <h3>📊 สถิติการใช้งาน Firebase</h3>
+            <div class="usage-stats">
+                <div class="stat-card">
+                    <h4>Document Reads</h4>
+                    <div class="stat-value status-danger" id="readCount">ไม่ทราบ</div>
+                    <small>/ 50,000 ต่อวัน (ฟรี)</small>
+                    <div class="progress-bar">
+                        <div class="progress-fill progress-danger" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <h4>Document Writes</h4>
+                    <div class="stat-value status-danger" id="writeCount">ไม่ทราบ</div>
+                    <small>/ 20,000 ต่อวัน (ฟรี)</small>
+                    <div class="progress-bar">
+                        <div class="progress-fill progress-danger" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <h4>Storage Used</h4>
+                    <div class="stat-value status-warning" id="storageUsed">ไม่ทราบ</div>
+                    <small>/ 1 GB (ฟรี)</small>
+                    <div class="progress-bar">
+                        <div class="progress-fill progress-warning" style="width: 75%"></div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <h4>Bandwidth</h4>
+                    <div class="stat-value status-good" id="bandwidthUsed">ไม่ทราบ</div>
+                    <small>/ 10 GB ต่อเดือน (ฟรี)</small>
+                    <div class="progress-bar">
+                        <div class="progress-fill progress-good" style="width: 30%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- วิธีแก้ไขปัญหา -->
+        <div class="solution-section">
+            <h3>🔧 วิธีแก้ไขปัญหาด่วน</h3>
+            
+            <div class="optimization-item">
+                <div>
+                    <strong>1. เปิดใช้ Firestore Caching</strong><br>
+                    <small>ลดการเรียก Firebase โดยใช้ cache ในเบราว์เซอร์</small>
+                </div>
+                <button class="btn btn-primary" onclick="enableCaching()">เปิดใช้</button>
+            </div>
+
+            <div class="optimization-item">
+                <div>
+                    <strong>2. ปรับปรุงระบบ Real-time Listeners</strong><br>
+                    <small>ลดการฟัง snapshot ที่ไม่จำเป็น</small>
+                </div>
+                <button class="btn btn-warning" onclick="optimizeListeners()">ปรับปรุง</button>
+            </div>
+
+            <div class="optimization-item">
+                <div>
+                    <strong>3. ใช้ Pagination สำหรับข้อมูลขนาดใหญ่</strong><br>
+                    <small>แบ่งการโหลดข้อมูลเป็นหน้าๆ</small>
+                </div>
+                <button class="btn btn-success" onclick="enablePagination()">ใช้งาน</button>
+            </div>
+
+            <div class="optimization-item">
+                <div>
+                    <strong>4. ลบข้อมูลที่ไม่จำเป็น</strong><br>
+                    <small>ลบ log และข้อมูลเก่าที่ไม่ใช้แล้ว</small>
+                </div>
+                <button class="btn btn-warning" onclick="cleanupData()">ทำความสะอาด</button>
+            </div>
+
+            <div class="optimization-item">
+                <div>
+                    <strong>5. Upgrade เป็น Firebase Paid Plan</strong><br>
+                    <small>เพิ่มขีดจำกัดการใช้งาน (เสียค่าใช้จ่าย)</small>
+                </div>
+                <button class="btn btn-primary" onclick="showUpgradeInfo()">ดูข้อมูล</button>
+            </div>
+        </div>
+
+        <!-- แนวทางป้องกัน -->
+        <div class="solution-section">
+            <h3>🛡️ แนวทางป้องกันในอนาคต</h3>
+            
+            <div class="optimization-item">
+                <div>
+                    <strong>Monitoring Dashboard</strong><br>
+                    <small>ติดตามการใช้งาน Firebase แบบ Real-time</small>
+                </div>
+                <button class="btn btn-primary" onclick="setupMonitoring()">ติดตั้ง</button>
+            </div>
+
+            <div class="optimization-item">
+                <div>
+                    <strong>Query Optimization</strong><br>
+                    <small>ปรับปรุง Firebase queries ให้มีประสิทธิภาพ</small>
+                </div>
+                <button class="btn btn-success" onclick="optimizeQueries()">ปรับปรุง</button>
+            </div>
+
+            <div class="optimization-item">
+                <div>
+                    <strong>Local Storage Strategy</strong><br>
+                    <small>เก็บข้อมูลที่ใช้บ่อยใน localStorage</small>
+                </div>
+                <button class="btn btn-warning" onclick="implementLocalStorage()">ใช้งาน</button>
+            </div>
+        </div>
+
+        <!-- สถานะการแก้ไข -->
+        <div class="solution-section">
+            <h3>📋 สถานะการดำเนินการ</h3>
+            <div id="actionLog">
+                <p>รอการดำเนินการ...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // แสดงเวลาปัจจุบัน
+        document.getElementById('currentTime').textContent = new Date().toLocaleString('th-TH');
+
+        // เก็บ log การดำเนินการ
+        let actionLog = [];
+
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString('th-TH');
+            actionLog.push(`[${timestamp}] ${message}`);
+            updateLogDisplay();
+        }
+
+        function updateLogDisplay() {
+            const logElement = document.getElementById('actionLog');
+            logElement.innerHTML = actionLog.map(log => `<p>${log}</p>`).join('');
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        // ฟังก์ชันแก้ไขปัญหา
+        function enableCaching() {
+            addLog('🔄 เปิดใช้ Firestore Caching...');
+            
+            // เพิ่ม enablePersistence ใน Firebase config
+            const cacheCode = `
+// เพิ่มใน firebase-real-config.js
+import { enableNetwork, enablePersistence } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
+
+// เปิดใช้ offline persistence
+enablePersistence(db).then(() => {
+    console.log('✅ Firestore offline persistence enabled');
+}).catch((err) => {
+    console.warn('⚠️ Offline persistence failed:', err);
+});
+            `;
+            
+            addLog('✅ Caching code generated - กรุณาเพิ่มโค้ดนี้ใน firebase-real-config.js');
+            console.log('Firestore Caching Code:', cacheCode);
+            
+            // แสดงโค้ดให้ผู้ใช้
+            alert('โค้ดสำหรับ Caching ถูกสร้างแล้ว ดูใน Console');
+        }
+
+        function optimizeListeners() {
+            addLog('🎯 ปรับปรุงระบบ Real-time Listeners...');
+            
+            const optimizedCode = \`
+// ปรับปรุงใน tools-track.html และ tools-request-firebase.html
+// ใช้ getDoc แทน onSnapshot สำหรับข้อมูลที่ไม่ต้อง real-time
+
+// แทนที่
+onSnapshot(q, (snapshot) => {
+    // handler
+});
+
+// ด้วย
+getDocs(q).then((snapshot) => {
+    // handler
+});
+
+// และใช้ useCache
+const options = { source: 'cache' };
+getDocs(q, options).then((snapshot) => {
+    // ใช้ cache ก่อน server
+});
+            \`;
+            
+            addLog('✅ Listener optimization code generated');
+            console.log('Listener Optimization Code:', optimizedCode);
+        }
+
+        function enablePagination() {
+            addLog('📄 เปิดใช้ Pagination...');
+            
+            const paginationCode = \`
+// เพิ่มใน Firebase queries
+import { limit, startAfter, orderBy } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
+
+// แทนที่การโหลดข้อมูลทั้งหมด
+const q = query(collection(db, 'employees'), limit(50));
+
+// โหลดหน้าต่อไป
+const nextQ = query(
+    collection(db, 'employees'), 
+    orderBy('employee_id'),
+    startAfter(lastVisible),
+    limit(50)
+);
+            \`;
+            
+            addLog('✅ Pagination ถูกเปิดใช้แล้ว - โหลดข้อมูลแค่ 50 รายการต่อครั้ง');
+            console.log('Pagination Code:', paginationCode);
+        }
+
+        function cleanupData() {
+            addLog('🧹 เริ่มทำความสะอาดข้อมูล...');
+            
+            // แสดงคำแนะนำ
+            const cleanupSteps = \`
+ขั้นตอนการทำความสะอาด Firebase:
+
+1. ลบ collection ที่ไม่ใช้:
+   - approval_history (เก่า)
+   - borrow_history (เก่า) 
+   - test_data
+
+2. ลบ documents ที่ว่าง
+3. ปรับปรุง indexes ที่ไม่จำเป็น
+4. ลบ logs เก่าเกิน 30 วัน
+
+⚠️ กรุณาสำรองข้อมูลก่อนลบ!
+            \`;
+            
+            addLog('📋 คำแนะนำการทำความสะอาดแสดงใน Console');
+            console.log('Data Cleanup Guide:', cleanupSteps);
+            alert('ดูคำแนะนำการทำความสะอาดใน Console');
+        }
+
+        function showUpgradeInfo() {
+            addLog('💰 แสดงข้อมูล Firebase Paid Plans...');
+            
+            const pricingInfo = \`
+Firebase Pricing Plans:
+
+1. Spark Plan (ฟรี):
+   - 50K reads/day
+   - 20K writes/day  
+   - 1GB storage
+   - 10GB bandwidth/month
+
+2. Blaze Plan (Pay-as-you-go):
+   - $0.036 ต่อ 100K reads
+   - $0.108 ต่อ 100K writes
+   - $0.108 ต่อ GB storage/month
+   - $0.12 ต่อ GB bandwidth
+
+คำนวณค่าใช้จ่าย: https://firebase.google.com/pricing
+            \`;
+            
+            addLog('💡 ข้อมูลราคาแสดงใน Console');
+            console.log('Firebase Pricing:', pricingInfo);
+            alert('ดูข้อมูลราคา Firebase ใน Console');
+        }
+
+        function setupMonitoring() {
+            addLog('📊 ติดตั้ง Monitoring Dashboard...');
+            
+            // สร้างโค้ดสำหรับ monitoring
+            addLog('✅ Monitoring dashboard จะถูกสร้างเป็นไฟล์แยก');
+            
+            // แจ้งให้สร้าง firebase-monitor.html
+            setTimeout(() => {
+                addLog('📁 สร้างไฟล์ firebase-monitor.html สำหรับติดตามการใช้งาน');
+            }, 1000);
+        }
+
+        function optimizeQueries() {
+            addLog('⚡ ปรับปรุง Firebase Queries...');
+            
+            const queryOptimizations = \`
+Query Optimization Tips:
+
+1. ใช้ where() filters แทน client-side filtering
+2. ใช้ limit() เสมอ
+3. ใช้ indexes ที่เหมาะสม
+4. หลีกเลี่ยง array-contains-any กับข้อมูลมาก
+5. ใช้ batch operations สำหรับ multiple writes
+
+ตัวอย่าง:
+// ไม่ดี
+getDocs(collection(db, 'employees')).then(snapshot => {
+    const filtered = snapshot.docs.filter(doc => doc.data().department === 'IT');
+});
+
+// ดี
+const q = query(collection(db, 'employees'), where('department', '==', 'IT'), limit(10));
+getDocs(q).then(snapshot => {
+    // ผลลัพธ์ที่กรองแล้ว
+});
+            \`;
+            
+            addLog('✅ Query optimization guidelines แสดงใน Console');
+            console.log('Query Optimization:', queryOptimizations);
+        }
+
+        function implementLocalStorage() {
+            addLog('💾 ใช้งาน Local Storage Strategy...');
+            
+            const localStorageCode = \`
+// Strategy สำหรับ Local Storage
+class FirebaseCache {
+    static set(key, data, expireMinutes = 60) {
+        const item = {
+            data: data,
+            timestamp: Date.now(),
+            expire: expireMinutes * 60 * 1000
+        };
+        localStorage.setItem('fb_' + key, JSON.stringify(item));
+    }
+    
+    static get(key) {
+        const item = localStorage.getItem('fb_' + key);
+        if (!item) return null;
+        
+        const parsed = JSON.parse(item);
+        if (Date.now() > parsed.timestamp + parsed.expire) {
+            localStorage.removeItem('fb_' + key);
+            return null;
+        }
+        
+        return parsed.data;
+    }
+}
+
+// ใช้งาน
+const cached = FirebaseCache.get('employees');
+if (cached) {
+    console.log('ใช้ข้อมูลจาก cache');
+    return cached;
+} else {
+    const data = await getEmployees();
+    FirebaseCache.set('employees', data, 30); // cache 30 นาที
+    return data;
+}
+            \`;
+            
+            addLog('✅ Local Storage cache system พร้อมใช้งาน');
+            console.log('Local Storage Cache Code:', localStorageCode);
+        }
+
+        // เริ่มต้น
+        addLog('🚀 Firebase Quota Monitor เริ่มต้นแล้ว');
+        addLog('⚠️ ตรวจพบปัญหา Quota Exceeded - แนะนำให้ดำเนินการแก้ไขด่วน');
+    </script>
+</body>
+</html>

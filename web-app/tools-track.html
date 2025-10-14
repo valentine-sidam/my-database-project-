@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบติดตามเครื่องมือ - Tools Track System</title>
+    <script src="navbar.js"></script>
+    <script src="auth-system.js"></script>
     
     <style>
         * {
@@ -15,8 +17,15 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f5f3e8;
-            padding: 20px;
+            margin: 0;
+            padding: 0;
             min-height: 100vh;
+        }
+
+        .page-wrapper {
+            padding: 20px;
+            margin-top: 80px;
+            min-height: calc(100vh - 80px);
         }
 
         .container {
@@ -114,7 +123,7 @@
             font-weight: 600;
             color: #495057;
             margin-bottom: 8px;
-            font-size: 14px;
+            font-size: 16px; /* เพิ่มจาก 14px เป็น 16px */
         }
 
         .form-group input, 
@@ -122,7 +131,7 @@
             padding: 12px;
             border: 2px solid #ced4da;
             border-radius: 10px;
-            font-size: 14px;
+            font-size: 16px; /* เพิ่มจาก 14px เป็น 16px */
             transition: border-color 0.3s ease;
         }
 
@@ -196,14 +205,14 @@
         .request-id {
             font-weight: 700;
             color: #495057;
-            font-size: 16px;
+            font-size: 18px; /* เพิ่มจาก 16px เป็น 18px */
         }
 
         .status-badge {
             padding: 8px 16px;
             border-radius: 20px;
             font-weight: 600;
-            font-size: 12px;
+            font-size: 14px; /* เพิ่มจาก 12px เป็น 14px */
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -323,6 +332,78 @@
             font-size: 16px;
         }
 
+        /* Styles สำหรับระบบ Authentication */
+        .user-info {
+            display: flex;
+            justify-content: center;
+            margin: 15px 0;
+        }
+
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #495057;
+            border: 1px solid #e9ecef;
+        }
+
+        .role-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .role-admin {
+            background: #28a745;
+            color: white;
+        }
+
+        .role-user {
+            background: #6c757d;
+            color: white;
+        }
+
+        .access-denied {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .access-denied h3 {
+            margin-bottom: 10px;
+            color: #721c24;
+        }
+
+        .access-denied a {
+            color: #721c24;
+            font-weight: 600;
+            text-decoration: underline;
+        }
+
+        .access-denied button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .access-denied button:hover {
+            background: #c82333;
+        }
+
         @media (max-width: 768px) {
             .container {
                 margin: 10px;
@@ -360,14 +441,25 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="page-wrapper">
+        <div class="container">
         <div class="header">
             <h1>ระบบติดตามเครื่องมือ</h1>
             <p>Tools Track System - ติดตามสถานะการขออุปกรณ์แบบ Real-time</p>
+            
+            <!-- แสดงข้อมูลผู้ใช้และสิทธิ์ -->
+            <div id="userInfo" class="user-info"></div>
+            
+            <!-- ข้อความสำหรับผู้ใช้ที่ไม่มีสิทธิ์ -->
+            <div id="accessDenied" class="access-denied" style="display: none;">
+                <h3>⚠️ ไม่มีสิทธิ์เข้าถึง</h3>
+                <p>หน้านี้สำหรับ <strong>เจ้าหน้าที่สโตว์/ธุรการสโตว์</strong> เท่านั้น</p>
+                <p>หากคุณเป็นพนักงานทั่วไป กรุณาใช้ <a href="tools-request-firebase.html">ระบบขอเบิกเครื่องมือ</a> แทน</p>
+            </div>
         </div>
 
-        <!-- Dashboard สถิติ -->
-        <div class="stats-dashboard">
+        <!-- Dashboard สถิติ - เฉพาะ Admin เท่านั้น -->
+        <div class="stats-dashboard" data-admin-only>
             <div class="stat-card">
                 <h3>คำขอทั้งหมด</h3>
                 <div class="number" id="totalRequests">-</div>
@@ -390,8 +482,8 @@
             </div>
         </div>
 
-        <!-- ตัวกรองข้อมูล -->
-        <div class="filters-section">
+        <!-- ตัวกรองข้อมูล - เฉพาะ Admin เท่านั้น -->
+        <div class="filters-section" data-admin-only>
             <div class="filters-grid">
                 <div class="form-group">
                     <label for="employeeFilter">พนักงาน (Employee)</label>
@@ -418,8 +510,8 @@
             </div>
         </div>
 
-        <!-- แสดงรายการคำขอ -->
-        <div class="requests-section">
+        <!-- แสดงรายการคำขอ - เฉพาะ Admin เท่านั้น -->
+        <div class="requests-section" data-admin-only>
             <h2 class="section-title">รายการคำขออุปกรณ์</h2>
             <div id="requestsContainer">
                 <div class="loading">กำลังโหลดข้อมูล...</div>
@@ -459,6 +551,91 @@
         // Global variables
         let allRequests = [];
         let employees = [];
+
+        // เริ่มต้นระบบเมื่อหน้าเว็บโหลดเสร็จ
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🚀 เริ่มต้นระบบติดตามเครื่องมือ');
+            
+            // รอให้ Firebase Service พร้อม
+            await waitForFirebase();
+            
+            // ตรวจสอบสิทธิ์การเข้าถึง
+            await checkAccess();
+        });
+
+        // รอให้ Firebase Service พร้อมใช้งาน
+        function waitForFirebase() {
+            return new Promise((resolve) => {
+                const checkFirebase = () => {
+                    if (window.firebase) {
+                        resolve();
+                    } else {
+                        setTimeout(checkFirebase, 100);
+                    }
+                };
+                checkFirebase();
+            });
+        }
+
+        // ตรวจสอบสิทธิ์การเข้าถึง
+        async function checkAccess() {
+            try {
+                // พยายามกู้คืน session ที่มีอยู่
+                const hasSession = window.authSystem.restoreSession();
+                
+                if (!hasSession) {
+                    // ถ้าไม่มี session ให้ถามรหัสพนักงาน
+                    const employeeId = prompt('กรุณาใส่รหัสพนักงานเพื่อเข้าสู่ระบบ:');
+                    if (!employeeId) {
+                        showAccessDenied('ไม่ได้ระบุรหัสพนักงาน');
+                        return;
+                    }
+                    
+                    const loginResult = await window.authSystem.login(employeeId);
+                    if (!loginResult.success) {
+                        showAccessDenied(loginResult.error);
+                        return;
+                    }
+                }
+                
+                // ตรวจสอบสิทธิ์ Admin
+                if (!window.authSystem.hasPermission('canViewDashboard')) {
+                    showAccessDenied('คุณไม่มีสิทธิ์เข้าถึงหน้านี้ หน้านี้สำหรับเจ้าหน้าที่สโตว์/ธุรการสโตว์เท่านั้น');
+                    return;
+                }
+                
+                // ถ้ามีสิทธิ์ให้แสดงข้อมูล
+                await initializeSystem();
+                
+            } catch (error) {
+                console.error('❌ เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์:', error);
+                showAccessDenied('เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์');
+            }
+        }
+
+        // แสดงข้อความไม่มีสิทธิ์เข้าถึง
+        function showAccessDenied(message) {
+            const accessDeniedDiv = document.getElementById('accessDenied');
+            if (accessDeniedDiv) {
+                accessDeniedDiv.innerHTML = `
+                    <h3>⚠️ ไม่มีสิทธิ์เข้าถึง</h3>
+                    <p>${message}</p>
+                    <p>หากคุณเป็นพนักงานทั่วไป กรุณาใช้ <a href="tools-request-firebase.html">ระบบขอเบิกเครื่องมือ</a> แทน</p>
+                    <button onclick="location.reload()" class="btn-filter">ลองใหม่</button>
+                `;
+                accessDeniedDiv.style.display = 'block';
+            }
+        }
+
+        // เริ่มต้นระบบหลังจากตรวจสอบสิทธิ์แล้ว
+        async function initializeSystem() {
+            // ปรับแต่ง UI ตามสิทธิ์
+            window.authSystem.adjustUIForPermissions();
+            
+            // โหลดข้อมูล
+            await loadEmployees();
+            await loadRequests();
+        }
 
         // Load employees for filter
         async function loadEmployees() {
@@ -635,5 +812,6 @@
 
         initApp();
     </script>
+    </div>
 </body>
 </html>
