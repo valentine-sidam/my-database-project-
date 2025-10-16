@@ -7,6 +7,7 @@
     <script src="navbar.js"></script>
     <script src="auth-system.js"></script>
     <script src="firebase-emergency-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
         * {
@@ -177,6 +178,187 @@
         .card-description {
             color: #666;
             font-size: 14px;
+        }
+
+        /* Chart Section Styles */
+        .chart-section {
+            margin-bottom: 30px;
+            padding: 25px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            border: 2px solid #e9ecef;
+        }
+
+        .chart-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .chart-center-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .center-number {
+            font-size: 36px;
+            font-weight: bold;
+            color: #333;
+            line-height: 1;
+        }
+
+        .center-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 2px;
+            font-weight: 500;
+        }
+
+        .center-sublabel {
+            font-size: 12px;
+            color: #999;
+            margin-top: 2px;
+            font-weight: 400;
+        }
+
+        .chart-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .legend-item:hover {
+            background: #f8f9fa;
+            border-color: #4A90E2;
+            transform: translateX(5px);
+        }
+
+        .legend-item.active {
+            background: #e3f2fd;
+            border-color: #4A90E2;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .legend-text {
+            flex: 1;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .legend-count {
+            font-weight: bold;
+            color: #4A90E2;
+            font-size: 18px;
+        }
+
+        /* Filtered Results */
+        .filtered-results {
+            margin-bottom: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border: 2px solid #4A90E2;
+        }
+
+        .filtered-results h3 {
+            color: #4A90E2;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        .btn-clear-filter {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s ease;
+        }
+
+        .btn-clear-filter:hover {
+            background: #5a6268;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .tool-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #4A90E2;
+        }
+
+        .tool-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .tool-status {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .tool-status.available { background: #d4edda; color: #155724; }
+        .tool-status.in-use { background: #cce7ff; color: #004085; }
+        .tool-status.damaged { background: #f8d7da; color: #721c24; }
+        .tool-status.maintenance { background: #fff3cd; color: #856404; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .chart-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .chart-wrapper {
+                max-width: 300px;
+            }
+            
+            .center-number {
+                font-size: 28px;
+            }
         }
 
         .filters-section {
@@ -542,67 +724,85 @@
         <div class="dashboard-overview">
             <h2 style="text-align: center; margin-bottom: 25px; color: #333; font-size: 24px;">📊 ภาพรวมสถานะเครื่องมือ</h2>
             
-            <div class="dashboard-grid">
-                <!-- Card 1: จำนวนเครื่องมือทั้งหมด -->
-                <div class="dashboard-card">
-                    <div class="card-header">
-                        <div class="card-icon" style="background: #007bff;">🔧</div>
-                        <h3 class="card-title">จำนวนเครื่องมือทั้งหมด</h3>
-                    </div>
-                    <div class="card-value" id="totalTools">6,632</div>
-                    <p class="card-description">เครื่องมือทั้งหมดในระบบ</p>
-                </div>
+            <!-- Category Filter -->
+            <div style="text-align: center; margin-bottom: 25px;">
+                <select id="categoryFilter" style="padding: 10px 20px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; background: white; min-width: 200px;">
+                    <option value="all">ทุกหมวดหมู่</option>
+                    <option value="construction">เครื่องมือก่อสร้าง</option>
+                    <option value="electrical">เครื่องมือไฟฟ้า</option>
+                    <option value="mechanical">เครื่องมือกล</option>
+                    <option value="measurement">เครื่องมือวัด</option>
+                    <option value="safety">อุปกรณ์ความปลอดภัย</option>
+                    <option value="other">อื่นๆ</option>
+                </select>
+                <button id="refreshData" style="margin-left: 10px; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;">🔄 รีเฟรช</button>
+            </div>
 
-                <!-- Card 2: สถานะพร้อมใช้งาน -->
-                <div class="dashboard-card">
-                    <div class="card-header">
-                        <div class="card-icon" style="background: #28a745;">✅</div>
-                        <h3 class="card-title">พร้อมใช้งาน</h3>
-                    </div>
-                    <div class="card-value" id="availableTools">5,847</div>
-                    <p class="card-description">เครื่องมือที่พร้อมใช้งาน</p>
-                </div>
+            <!-- Category Stats Cards -->
+            <div id="categoryStats" class="dashboard-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                <!-- Cards จะถูกสร้างโดย JavaScript -->
+            </div>
+        </div>
 
-                <!-- Card 3: กำลังใช้งานอยู่ -->
-                <div class="dashboard-card">
-                    <div class="card-header">
-                        <div class="card-icon" style="background: #007bff;">🔄</div>
-                        <h3 class="card-title">ใช้งานอยู่</h3>
-                    </div>
-                    <div class="card-value" id="inUseTools">542</div>
-                    <p class="card-description">เครื่องมือที่ถูกเบิกใช้งาน</p>
-                </div>
 
-                <!-- Card 4: เสียหาย -->
-                <div class="dashboard-card">
-                    <div class="card-header">
-                        <div class="card-icon" style="background: #dc3545;">❌</div>
-                        <h3 class="card-title">เสียหาย</h3>
-                    </div>
-                    <div class="card-value" id="damagedTools">156</div>
-                    <p class="card-description">เครื่องมือที่เสียหาย</p>
-                </div>
 
-                <!-- Card 5: กำลังตรวจสอบ/ซ่อม -->
-                <div class="dashboard-card">
                     <div class="card-header">
-                        <div class="card-icon" style="background: #ffc107;">⚠️</div>
-                        <h3 class="card-title">กำลังตรวจสอบ/ซ่อม</h3>
-                    </div>
-                    <div class="card-value" id="maintenanceTools">87</div>
-                    <p class="card-description">เครื่องมือที่อยู่ระหว่างการซ่อมแซม</p>
-                </div>
+                        <div class="card-icon" style="background: #007bff;">�</div>
 
-                <!-- Card 6: ผู้เบิกเครื่องมือ -->
-                <div class="dashboard-card">
-                    <div class="card-header">
-                        <div class="card-icon" style="background: #17a2b8;">👥</div>
-                        <h3 class="card-title">ผู้เบิกเครื่องมือ</h3>
                     </div>
-                    <div class="card-value" id="activeUsers">127</div>
-                    <p class="card-description">พนักงานที่เบิกเครื่องมืออยู่</p>
+
+
                 </div>
             </div>
+        </div>
+
+        <!-- Donut Chart Section -->
+        <div class="chart-section">
+            <h2 style="text-align: center; margin-bottom: 25px; color: #333; font-size: 24px;">📊 สถานะเครื่องมือ - แผนภูมิโดนัท</h2>
+            
+            <div class="chart-container">
+                <div class="chart-wrapper">
+                    <canvas id="statusDonutChart"></canvas>
+                    <div class="chart-center-text">
+                        <div class="center-number" id="centerNumber">0</div>
+                        <div class="center-label">รายการ</div>
+                        <div class="center-sublabel" id="centerSublabel">เครื่องมือทั้งหมด</div>
+                    </div>
+                </div>
+                
+                <!-- Chart Legend with Click Actions -->
+                <div class="chart-legend">
+                    <div class="legend-item" data-status="available" onclick="filterByStatus('available')">
+                        <div class="legend-color" style="background: #28a745;"></div>
+                        <span class="legend-text">พร้อมใช้งาน</span>
+                        <span class="legend-count" id="legend-available">0</span>
+                    </div>
+                    <div class="legend-item" data-status="in-use" onclick="filterByStatus('in-use')">
+                        <div class="legend-color" style="background: #007bff;"></div>
+                        <span class="legend-text">ใช้งานอยู่</span>
+                        <span class="legend-count" id="legend-in-use">0</span>
+                    </div>
+                    <div class="legend-item" data-status="damaged" onclick="filterByStatus('damaged')">
+                        <div class="legend-color" style="background: #dc3545;"></div>
+                        <span class="legend-text">เสียหาย</span>
+                        <span class="legend-count" id="legend-damaged">0</span>
+                    </div>
+                    <div class="legend-item" data-status="maintenance" onclick="filterByStatus('maintenance')">
+                        <div class="legend-color" style="background: #ffc107;"></div>
+                        <span class="legend-text">กำลังตรวจสอบ/ซ่อม</span>
+                        <span class="legend-count" id="legend-maintenance">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtered Results Section -->
+        <div class="filtered-results" id="filteredResults" style="display: none;">
+            <h3 id="filteredTitle">ผลการกรอง</h3>
+            <div class="tools-grid" id="filteredToolsList">
+                <!-- ผลการกรองจะแสดงที่นี่ -->
+            </div>
+            <button class="btn-clear-filter" onclick="clearFilter()">ล้างตัวกรอง</button>
         </div>
 
         <!-- Dashboard สถิติ - เฉพาะ Admin เท่านั้น -->
@@ -951,6 +1151,314 @@
             return date.toLocaleDateString('th-TH');
         }
 
+        // Chart Variables
+        let statusChart = null;
+        let currentToolsData = [];
+
+        // Create Status Donut Chart
+        function createStatusChart(data) {
+            const ctx = document.getElementById('statusDonutChart').getContext('2d');
+            
+            // ลบ chart เก่าถ้ามี
+            if (statusChart) {
+                statusChart.destroy();
+            }
+
+            const chartData = {
+                labels: ['พร้อมใช้งาน', 'ใช้งานอยู่', 'เสียหาย', 'กำลังตรวจสอบ/ซ่อม'],
+                datasets: [{
+                    data: [
+                        data.available,
+                        data.inUse,
+                        data.damaged,
+                        data.maintenance
+                    ],
+                    backgroundColor: [
+                        '#28a745',
+                        '#007bff',
+                        '#dc3545',
+                        '#ffc107'
+                    ],
+                    borderWidth: 3,
+                    borderColor: '#fff',
+                    hoverBorderWidth: 5,
+                    hoverOffset: 10
+                }]
+            };
+
+            statusChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label;
+                                    const value = context.raw;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${label}: ${value} รายการ (${percentage}%)`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '60%',
+                    onClick: (event, elements) => {
+                        if (elements.length > 0) {
+                            const index = elements[0].index;
+                            const statuses = ['available', 'in-use', 'damaged', 'maintenance'];
+                            filterByStatus(statuses[index]);
+                        }
+                    },
+                    onHover: (event, elements) => {
+                        event.native.target.style.cursor = elements.length > 0 ? 'pointer' : 'default';
+                    }
+                }
+            });
+
+            // อัพเดทตัวเลขตรงกลาง
+            const total = data.available + data.inUse + data.damaged + data.maintenance;
+            document.getElementById('centerNumber').textContent = total.toLocaleString();
+            
+            // อัพเดท sublabel ตรงกลาง
+            const centerSublabel = document.getElementById('centerSublabel');
+            if (centerSublabel) {
+                centerSublabel.textContent = 'เครื่องมือทั้งหมด';
+            }
+
+            // อัพเดท legend counts
+            document.getElementById('legend-available').textContent = data.available.toLocaleString();
+            document.getElementById('legend-in-use').textContent = data.inUse.toLocaleString();
+            document.getElementById('legend-damaged').textContent = data.damaged.toLocaleString();
+            document.getElementById('legend-maintenance').textContent = data.maintenance.toLocaleString();
+        }
+
+        // Filter tools by status
+        function filterByStatus(status) {
+            const statusMap = {
+                'available': ['available', 'พร้อมใช้งาน'],
+                'in-use': ['in-use', 'ใช้งานอยู่'],
+                'damaged': ['damaged', 'เสียหาย'],
+                'maintenance': ['maintenance', 'กำลังตรวจสอบ/ซ่อม']
+            };
+
+            const statusNames = {
+                'available': 'พร้อมใช้งาน',
+                'in-use': 'ใช้งานอยู่',
+                'damaged': 'เสียหาย',
+                'maintenance': 'กำลังตรวจสอบ/ซ่อม'
+            };
+
+            // กรองข้อมูลเครื่องมือ
+            const filteredTools = currentToolsData.filter(tool => 
+                statusMap[status].includes(tool.status)
+            );
+
+            // แสดงผลการกรอง
+            const resultsSection = document.getElementById('filteredResults');
+            const titleElement = document.getElementById('filteredTitle');
+            const listElement = document.getElementById('filteredToolsList');
+
+            titleElement.textContent = `เครื่องมือสถานะ: ${statusNames[status]} (${filteredTools.length} รายการ)`;
+            
+            // อัพเดทตัวเลขตรงกลางโดนัท
+            const centerNumber = document.getElementById('centerNumber');
+            const centerSublabel = document.getElementById('centerSublabel');
+            if (centerNumber) {
+                centerNumber.textContent = filteredTools.length.toLocaleString();
+            }
+            if (centerSublabel) {
+                centerSublabel.textContent = statusNames[status];
+            }
+            
+            listElement.innerHTML = filteredTools.map(tool => `
+                <div class="tool-item">
+                    <div class="tool-name">${tool.name}</div>
+                    <div class="tool-id" style="font-size: 12px; color: #666; margin-bottom: 8px;">${tool.id}</div>
+                    <div class="tool-status ${status}">${statusNames[status]}</div>
+                    ${tool.current_user ? `<div style="font-size: 12px; color: #666; margin-top: 5px;">ผู้ใช้: ${tool.current_user}</div>` : ''}
+                </div>
+            `).join('');
+
+            resultsSection.style.display = 'block';
+
+            // อัพเดท legend เพื่อแสดงสถานะที่เลือก
+            document.querySelectorAll('.legend-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`[data-status="${status}"]`).classList.add('active');
+
+            // เลื่อนไปยังผลการกรอง
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Clear filter
+        function clearFilter() {
+            document.getElementById('filteredResults').style.display = 'none';
+            document.querySelectorAll('.legend-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // คืนค่าข้อความตรงกลางโดนัทเป็นปกติ
+            const centerNumber = document.getElementById('centerNumber');
+            const centerSublabel = document.getElementById('centerSublabel');
+            if (centerNumber && currentToolsData) {
+                centerNumber.textContent = currentToolsData.length.toLocaleString();
+            }
+            if (centerSublabel) {
+                centerSublabel.textContent = 'เครื่องมือทั้งหมด';
+            }
+        }
+
+        // Category Management Functions
+        function getToolCategory(tool) {
+            const name = tool.name.toLowerCase();
+            const id = tool.id.toLowerCase();
+            
+            // กำหนดหมวดหมู่ตามชื่อเครื่องมือ
+            if (name.includes('สว่าน') || name.includes('เลื่อย') || name.includes('ค้อน') || name.includes('ไขควง') || name.includes('ประแจ')) {
+                return 'construction';
+            } else if (name.includes('ไฟฟ้า') || name.includes('เชื่อม') || name.includes('ไฟ') || id.includes('electrical')) {
+                return 'electrical';
+            } else if (name.includes('รอก') || name.includes('กล') || name.includes('เครื่องจักร') || name.includes('มอเตอร์')) {
+                return 'mechanical';
+            } else if (name.includes('วัด') || name.includes('ชั่ง') || name.includes('เมตร') || name.includes('ไมโครมิเตอร์')) {
+                return 'measurement';
+            } else if (name.includes('หมวก') || name.includes('ถุงมือ') || name.includes('แว่นตา') || name.includes('ปลอดภัย')) {
+                return 'safety';
+            } else {
+                return 'other';
+            }
+        }
+
+        function getCategoryInfo(category) {
+            const categories = {
+                'construction': { name: 'เครื่องมือก่อสร้าง', icon: '🔨', color: '#fd7e14' },
+                'electrical': { name: 'เครื่องมือไฟฟ้า', icon: '⚡', color: '#ffc107' },
+                'mechanical': { name: 'เครื่องมือกล', icon: '⚙️', color: '#6c757d' },
+                'measurement': { name: 'เครื่องมือวัด', icon: '📏', color: '#20c997' },
+                'safety': { name: 'อุปกรณ์ความปลอดภัย', icon: '🦺', color: '#dc3545' },
+                'other': { name: 'อื่นๆ', icon: '🔧', color: '#6f42c1' }
+            };
+            return categories[category] || categories.other;
+        }
+
+        function updateCategoryStats(tools, selectedCategory = 'all') {
+            const categoryStatsContainer = document.getElementById('categoryStats');
+            
+            if (selectedCategory === 'all') {
+                // แสดงสถิติแยกตามหมวดหมู่
+                const categoryData = {};
+                
+                tools.forEach(tool => {
+                    const category = getToolCategory(tool);
+                    if (!categoryData[category]) {
+                        categoryData[category] = {
+                            total: 0,
+                            available: 0,
+                            inUse: 0,
+                            damaged: 0,
+                            maintenance: 0
+                        };
+                    }
+                    
+                    categoryData[category].total++;
+                    
+                    switch(tool.status) {
+                        case 'available':
+                        case 'พร้อมใช้งาน':
+                            categoryData[category].available++;
+                            break;
+                        case 'in-use':
+                        case 'ใช้งานอยู่':
+                            categoryData[category].inUse++;
+                            break;
+                        case 'damaged':
+                        case 'เสียหาย':
+                            categoryData[category].damaged++;
+                            break;
+                        case 'maintenance':
+                        case 'กำลังตรวจสอบ/ซ่อม':
+                            categoryData[category].maintenance++;
+                            break;
+                    }
+                });
+
+                // สร้างการ์ดสำหรับแต่ละหมวดหมู่
+                categoryStatsContainer.innerHTML = Object.keys(categoryData).map(category => {
+                    const info = getCategoryInfo(category);
+                    const data = categoryData[category];
+                    const availablePercent = ((data.available / data.total) * 100).toFixed(1);
+                    
+                    return `
+                        <div class="dashboard-card" style="cursor: pointer;" onclick="filterByCategory('${category}')">
+                            <div class="card-header">
+                                <div class="card-icon" style="background: ${info.color};">${info.icon}</div>
+                                <h3 class="card-title">${info.name}</h3>
+                            </div>
+                            <div class="card-value">${data.total.toLocaleString()}</div>
+                            <p class="card-description">พร้อมใช้งาน ${data.available} (${availablePercent}%)</p>
+                            <div style="font-size: 12px; color: #666; margin-top: 8px;">
+                                <span style="color: #007bff;">ใช้งานอยู่ ${data.inUse}</span> | 
+                                <span style="color: #dc3545;">เสียหาย ${data.damaged}</span> | 
+                                <span style="color: #ffc107;">ซ่อม ${data.maintenance}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                // อัพเดทคำอธิบายในการ์ดรวม
+                document.getElementById('totalToolsDescription').textContent = 'เครื่องมือทั้งหมดในระบบ (ทุกหมวดหมู่)';
+                
+            } else {
+                // แสดงเฉพาะหมวดหมู่ที่เลือก
+                const filteredTools = tools.filter(tool => getToolCategory(tool) === selectedCategory);
+                const info = getCategoryInfo(selectedCategory);
+                
+                categoryStatsContainer.innerHTML = `
+                    <div class="dashboard-card" style="border: 3px solid ${info.color};">
+                        <div class="card-header">
+                            <div class="card-icon" style="background: ${info.color};">${info.icon}</div>
+                            <h3 class="card-title">${info.name}</h3>
+                        </div>
+                        <div class="card-value">${filteredTools.length.toLocaleString()}</div>
+                        <p class="card-description">เครื่องมือในหมวดหมู่นี้</p>
+                        <button onclick="filterByCategory('all')" style="margin-top: 10px; padding: 5px 15px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                            ดูทุกหมวดหมู่
+                        </button>
+                    </div>
+                `;
+                
+                // อัพเดทคำอธิบายในการ์ดรวม
+                document.getElementById('totalToolsDescription').textContent = `เครื่องมือทั้งหมดในหมวด${info.name}`;
+            }
+        }
+
+        function filterByCategory(category) {
+            const categoryFilter = document.getElementById('categoryFilter');
+            categoryFilter.value = category;
+            
+            // กรองข้อมูลใหม่
+            let filteredTools = currentToolsData;
+            
+            if (category !== 'all') {
+                filteredTools = currentToolsData.filter(tool => getToolCategory(tool) === category);
+            }
+            
+            // อัพเดทสถิติและแผนภูมิ
+            updateCategoryStats(currentToolsData, category);
+            updateDashboardStats(filteredTools);
+            displayTools(filteredTools);
+            
+            console.log(`🔍 กรองตามหมวดหมู่: ${category}, พบ ${filteredTools.length} รายการ`);
+        }
+
         // Dashboard Functions
         async function loadDashboardData() {
             try {
@@ -969,36 +1477,36 @@
         }
 
         async function loadToolsData() {
-            // Check if we have cached data first (for Firebase quota optimization)
-            const cacheKey = 'dashboard_tools_data';
-            const cachedData = localStorage.getItem(cacheKey);
-            const cacheTime = localStorage.getItem(cacheKey + '_time');
-            const now = Date.now();
-            
-            // Use cache if less than 5 minutes old
-            if (cachedData && cacheTime && (now - parseInt(cacheTime)) < 300000) {
-                console.log('📋 ใช้ข้อมูลจาก Cache');
-                return JSON.parse(cachedData);
-            }
-
-            // If no cache or expired, try to fetch from Firebase
             try {
-                if (typeof window.firebaseConfig !== 'undefined') {
-                    const tools = await window.firebaseConfig.getTools();
-                    // Cache the data
-                    localStorage.setItem(cacheKey, JSON.stringify(tools));
-                    localStorage.setItem(cacheKey + '_time', now.toString());
+                console.log('📋 กำลังโหลดข้อมูลเครื่องมือจาก Firebase...');
+                
+                // ใช้ระบบ FirebaseCache ที่มีอยู่แล้ว
+                if (typeof firebaseCache !== 'undefined') {
+                    const tools = await firebaseCache.getTools();
+                    console.log('✅ ดึงข้อมูลจาก Firebase สำเร็จ:', tools.length, 'รายการ');
                     return tools;
                 }
+                
+                // Fallback ถ้าไม่มี firebaseCache
+                if (typeof window.firebaseConfig !== 'undefined') {
+                    const tools = await window.firebaseConfig.getTools();
+                    console.log('✅ ดึงข้อมูลจาก Firebase Config สำเร็จ:', tools.length, 'รายการ');
+                    return tools;
+                }
+                
+                throw new Error('ไม่พบการกำหนดค่า Firebase');
+                
             } catch (error) {
-                console.warn('⚠️ ไม่สามารถดึงข้อมูลจาก Firebase ได้:', error);
+                console.error('❌ เกิดข้อผิดพลาดในการดึงข้อมูลจาก Firebase:', error);
+                console.log('📝 ใช้ข้อมูลตัวอย่างแทน');
+                return getSampleToolsData();
             }
-
-            // Return sample data if Firebase fails
-            return getSampleToolsData();
         }
 
         function updateDashboardStats(tools) {
+            // Store current tools data for filtering
+            currentToolsData = tools;
+            
             // Calculate statistics
             const totalTools = tools.length;
             const availableTools = tools.filter(tool => tool.status === 'available' || tool.status === 'พร้อมใช้งาน').length;
@@ -1006,38 +1514,55 @@
             const damagedTools = tools.filter(tool => tool.status === 'damaged' || tool.status === 'เสียหาย').length;
             const maintenanceTools = tools.filter(tool => tool.status === 'maintenance' || tool.status === 'กำลังตรวจสอบ/ซ่อม').length;
 
-            // Calculate active users (unique users with tools)
-            const activeUsers = tools.filter(tool => tool.current_user && tool.current_user !== '').length;
+            // Update only total tools display (REMOVED: now shows in donut center)
+            // document.getElementById('totalTools').textContent = totalTools.toLocaleString();
 
-            // Update the display
-            document.getElementById('totalTools').textContent = totalTools.toLocaleString();
-            document.getElementById('availableTools').textContent = availableTools.toLocaleString();
-            document.getElementById('inUseTools').textContent = inUseTools.toLocaleString();
-            document.getElementById('damagedTools').textContent = damagedTools.toLocaleString();
-            document.getElementById('maintenanceTools').textContent = maintenanceTools.toLocaleString();
-            document.getElementById('activeUsers').textContent = activeUsers.toLocaleString();
+            // Update category statistics
+            const categoryFilter = document.getElementById('categoryFilter');
+            const selectedCategory = categoryFilter ? categoryFilter.value : 'all';
+            updateCategoryStats(tools, selectedCategory);
+
+            // Create donut chart with all status data
+            createStatusChart({
+                available: availableTools,
+                inUse: inUseTools,
+                damaged: damagedTools,
+                maintenance: maintenanceTools
+            });
 
             console.log('📊 อัพเดทสถิติ Dashboard:', {
                 total: totalTools,
                 available: availableTools,
                 inUse: inUseTools,
                 damaged: damagedTools,
-                maintenance: maintenanceTools,
-                activeUsers: activeUsers
+                maintenance: maintenanceTools
             });
         }
 
         function getSampleToolsData() {
+            const toolNames = [
+                // เครื่องมือก่อสร้าง
+                'สว่านไฟฟ้า', 'ค้อนโครงเหล็ก', 'ไขควงไฟฟ้า', 'เลื่อยวงเดือน', 'ประแจปากตาย',
+                // เครื่องมือไฟฟ้า
+                'เครื่องเชื่อมไฟฟ้า', 'มัลติมิเตอร์', 'เครื่องทดสอบไฟฟ้า', 'คีมย้ำสาย', 'เครื่องมือตัดไฟฟ้า',
+                // เครื่องมือกล
+                'รอกสลิงไฟฟ้า', 'เครื่องมือกลึง', 'มอเตอร์ไฟฟ้า', 'เครื่องมือกล', 'เครื่องจักรกล',
+                // เครื่องมือวัด
+                'เครื่องชั่งดิจิตอล', 'ไมโครมิเตอร์', 'เวอร์เนียร์', 'เครื่องวัดระยะ', 'เครื่องมือวัดแรงดัน',
+                // อุปกรณ์ความปลอดภัย
+                'หมวกนิรภัย', 'ถุงมือป้องกัน', 'แว่นตาปลอดภัย', 'รองเท้าเซฟตี้', 'เสื้อปลอดภัย'
+            ];
+
             return [
                 { id: 'E.MJ.CON.010.031.011.0005', name: 'รอกสลิงไฟฟ้า ขนาด 1 ตัน', status: 'in-use', current_user: 'กมลลาศ วิชัยโย' },
                 { id: 'E.MJ.CON.020.110.001.0001', name: 'เครื่องชั่งน้ำหนักดิจิตอล', status: 'available', current_user: '' },
                 { id: 'E.MJ.CON.015.045.002.0012', name: 'สว่านไฟฟ้าแบบไร้สาย', status: 'maintenance', current_user: '' },
                 { id: 'E.MJ.CON.008.025.003.0045', name: 'เลื่อยวงเดือนไฟฟ้า', status: 'damaged', current_user: '' },
                 { id: 'E.MJ.CON.012.038.001.0067', name: 'เครื่องเชื่อมไฟฟ้า', status: 'in-use', current_user: 'อิทธิพล คำผงแดง' },
-                // เพิ่มข้อมูลตัวอย่างเพื่อให้ดูมีจำนวนมาก
+                // เพิ่มข้อมูลตัวอย่างหลากหลายหมวดหมู่
                 ...Array.from({length: 100}, (_, i) => ({
                     id: `TOOL-${String(i+1).padStart(4, '0')}`,
-                    name: `เครื่องมือตัวอย่าง ${i+1}`,
+                    name: toolNames[i % toolNames.length] + ` รุ่น ${i+1}`,
                     status: ['available', 'in-use', 'maintenance', 'damaged'][i % 4],
                     current_user: i % 3 === 0 ? `ผู้ใช้ ${i+1}` : ''
                 }))
@@ -1049,6 +1574,51 @@
             await loadEmployees();
             loadRequests();
             await loadDashboardData(); // เพิ่มการโหลดข้อมูล Dashboard
+            
+            // Add event listeners for legend clicks
+            document.querySelectorAll('.legend-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const status = this.getAttribute('data-status');
+                    if (this.classList.contains('active')) {
+                        clearFilter();
+                    } else {
+                        filterByStatus(status);
+                    }
+                });
+            });
+
+            // Add click listener for clear button
+            const clearBtn = document.getElementById('clearFilterBtn');
+            if (clearBtn) {
+                clearBtn.addEventListener('click', clearFilter);
+            }
+
+            // Add event listeners for category filtering
+            const categoryFilter = document.getElementById('categoryFilter');
+            if (categoryFilter) {
+                categoryFilter.addEventListener('change', function() {
+                    filterByCategory(this.value);
+                });
+            }
+
+            // Add event listener for refresh button
+            const refreshBtn = document.getElementById('refreshData');
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', async function() {
+                    refreshBtn.disabled = true;
+                    refreshBtn.innerHTML = '🔄 กำลังโหลด...';
+                    
+                    try {
+                        await loadDashboardData();
+                        console.log('✅ รีเฟรชข้อมูลสำเร็จ');
+                    } catch (error) {
+                        console.error('❌ เกิดข้อผิดพลาดในการรีเฟรช:', error);
+                    } finally {
+                        refreshBtn.disabled = false;
+                        refreshBtn.innerHTML = '🔄 รีเฟรช';
+                    }
+                });
+            }
         }
 
         initApp();
