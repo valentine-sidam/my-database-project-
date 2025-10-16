@@ -12,6 +12,7 @@ class ToolsTrackNavbar {
         if (filename.includes('tools-request')) return 'request';
         if (filename.includes('tools-track')) return 'track';
         if (filename.includes('admin')) return 'admin';
+        if (filename.includes('dashboard-status')) return 'dashboard';
         if (filename === '' || filename === '/' || filename.includes('index')) return 'home';
         return 'other';
     }
@@ -28,7 +29,7 @@ class ToolsTrackNavbar {
             <div class="navbar-container">
                 <!-- Logo & Brand -->
                 <div class="navbar-brand">
-                    <a href="index.html" class="brand-link ${this.currentPage === 'home' ? 'active' : ''}">
+                    <a href="tools-track.html" class="brand-link ${this.currentPage === 'track' ? 'active' : ''}">
                         <span class="brand-icon">🛠️</span>
                         <span class="brand-text">Tools Track</span>
                     </a>
@@ -36,10 +37,9 @@ class ToolsTrackNavbar {
 
                 <!-- Navigation Menu -->
                 <div class="navbar-menu">
-                    <a href="index.html" class="nav-item ${this.currentPage === 'home' ? 'active' : ''}">Dashboard</a>
-                    <a href="tools-request-firebase.html" class="nav-item ${this.currentPage === 'request' ? 'active' : ''}">ขอเบิกเครื่องมือ</a>
-                    <a href="tools-track.html" class="nav-item ${this.currentPage === 'track' ? 'active' : ''}">ติดตามสถานะ</a>
-                    <a href="admin-firebase.html" class="nav-item ${this.currentPage === 'admin' ? 'active' : ''}">ระบบจัดการ</a>
+                    <a href="tools-request-firebase.html" class="nav-item ${this.currentPage === 'request' ? 'active' : ''}">📝 ขอเบิกเครื่องมือ</a>
+                    <a href="tools-track.html" class="nav-item ${this.currentPage === 'track' ? 'active' : ''}">🔍 ติดตามสถานะ</a>
+                    <a href="admin-firebase.html" class="nav-item ${this.currentPage === 'admin' ? 'active' : ''}">⚙️ ระบบจัดการ</a>
                 </div>
 
                 <!-- Status Indicator & User Info -->

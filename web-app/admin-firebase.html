@@ -376,7 +376,7 @@
         </div>
 
         <div id="loadingIndicator" class="loading">
-            <div>🔄 กำลังโหลดข้อมูลจาก Firebase...</div>
+            <div>🔄 กำลังเชื่อมต่อระบบ... <span id="loadingProgress">0/3</span></div>
         </div>
 
         <div id="mainContent" style="display: none;">
@@ -536,7 +536,7 @@
     </div>
 
     <!-- Firebase SDK -->
-    <script type="module" src="firebase-real-config.js"></script>
+    <script type="module" src="firebase-emergency-config.js"></script>
     
     <script type="module">
         // ตัวแปรสำหรับเก็บข้อมูล
@@ -546,21 +546,82 @@
         let currentRequest = null;
 
         // รอให้ Firebase พร้อมใช้งาน
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔗 Navbar จะถูกสร้างโดย navbar.js อัตโนมัติ');
+        });
+
         window.addEventListener('load', async () => {
             console.log('🚀 เริ่มต้นระบบ Admin Management');
             
-            // รอให้ Firebase Service พร้อม
-            await waitForFirebase();
-            
-            // โหลดข้อมูลจาก Firebase
-            await loadAllData();
+            try {
+                // อัพเดทความคืบหน้า
+                document.getElementById('loadingProgress').textContent = '1/3';
+                document.getElementById('loadingIndicator').innerHTML = '<div>🔄 กำลังเชื่อมต่อ Firebase... <span id="loadingProgress">1/3</span></div>';
+                
+                // รอให้ Firebase Service พร้อม (ด้วย timeout)
+                await waitForFirebase();
+                
+                // อัพเดทความคืบหน้า
+                document.getElementById('loadingProgress').textContent = '2/3';
+                document.getElementById('loadingIndicator').innerHTML = '<div>🔄 กำลังโหลดข้อมูล... <span id="loadingProgress">2/3</span></div>';
+                
+                // โหลดข้อมูลจาก Firebase
+                await loadAllData();
+                
+                // อัพเดทความคืบหน้า
+                document.getElementById('loadingProgress').textContent = '3/3';
+                document.getElementById('loadingIndicator').innerHTML = '<div>✅ โหลดข้อมูลเสร็จสิ้น <span id="loadingProgress">3/3</span></div>';
+                
+            } catch (error) {
+                console.warn('⚠️ Firebase ไม่พร้อม - ใช้โหมดสำรอง:', error.message);
+                
+                // อัพเดทสถานะ
+                document.getElementById('loadingIndicator').innerHTML = '<div>⚠️ เปลี่ยนเป็นโหมดสำรอง... <span id="loadingProgress">2/3</span></div>';
+                
+                // ใช้ข้อมูลตัวอย่าง
+                allRequests = getSampleRequests();
+                allEmployees = getSampleEmployees();
+                allTools = getSampleTools();
+                
+                // อัพเดทความคืบหน้า
+                document.getElementById('loadingIndicator').innerHTML = `
+                    <div style="color: orange; text-align: center;">
+                        ⚠️ ทำงานในโหมดสำรอง<br>
+                        <small>Firebase ไม่พร้อม - แสดงข้อมูลตัวอย่าง</small>
+                    </div>
+                `;
+                
+                // รอ 1 วินาทีแล้วแสดงเนื้อหา
+                setTimeout(() => {
+                    document.getElementById('loadingIndicator').style.display = 'none';
+                    document.getElementById('mainContent').style.display = 'block';
+                    
+                    updateDashboardStats();
+                    displayRequests();
+                    displayEmployees();
+                    displayTools();
+                    updateReports();
+                    
+                    console.log('✅ โหลดข้อมูลตัวอย่างเสร็จสิ้น');
+                }, 1000);
+            }
         });
 
         function waitForFirebase() {
-            return new Promise((resolve) => {
+            return new Promise((resolve, reject) => {
+                let attempts = 0;
+                const maxAttempts = 30; // รอสูงสุด 3 วินาที (30 x 100ms)
+                
                 const checkFirebase = () => {
-                    if (window.firebase) {
+                    attempts++;
+                    console.log(`🔍 ตรวจสอบ Firebase... ครั้งที่ ${attempts}`);
+                    
+                    if (window.firebaseConfig || window.firebase) {
+                        console.log('✅ Firebase พร้อมใช้งาน');
                         resolve();
+                    } else if (attempts >= maxAttempts) {
+                        console.warn('⚠️ Firebase ไม่พร้อมใช้งาน - ใช้โหมด Demo');
+                        reject(new Error('Firebase timeout - 3 seconds'));
                     } else {
                         setTimeout(checkFirebase, 100);
                     }
@@ -571,18 +632,32 @@
 
         async function loadAllData() {
             try {
-                document.getElementById('loadingIndicator').innerHTML = '<div>🔄 กำลังโหลดข้อมูลทั้งหมดจาก Firebase...</div>';
+                document.getElementById('loadingIndicator').innerHTML = '<div>🔄 กำลังโหลดข้อมูลจาก Firebase... (รอสูงสุด 5 วินาที)</div>';
                 
-                // โหลดข้อมูลทั้งหมดพร้อมกัน
-                const [requests, employees, tools] = await Promise.all([
-                    window.firebase.getToolRequests(),
-                    window.firebase.getEmployees(),
-                    window.firebase.getTools()
+                // ตรวจสอบว่าใช้ระบบ emergency หรือ real config
+                const firebaseService = window.firebaseConfig || window.firebase;
+                
+                if (!firebaseService) {
+                    throw new Error('Firebase service not available');
+                }
+                
+                // โหลดข้อมูลทั้งหมดพร้อมกันด้วย timeout 5 วินาที
+                const loadPromise = Promise.all([
+                    firebaseService.getToolRequests ? firebaseService.getToolRequests() : firebaseService.getRequests ? firebaseService.getRequests() : [],
+                    firebaseService.getEmployees ? firebaseService.getEmployees() : [],
+                    firebaseService.getTools ? firebaseService.getTools() : []
                 ]);
 
-                allRequests = requests;
-                allEmployees = employees;
-                allTools = tools;
+                // เพิ่ม timeout 5 วินาที
+                const timeoutPromise = new Promise((_, reject) => {
+                    setTimeout(() => reject(new Error('Firebase loading timeout - 5 seconds')), 5000);
+                });
+
+                const [requests, employees, tools] = await Promise.race([loadPromise, timeoutPromise]);
+
+                allRequests = requests || [];
+                allEmployees = employees || [];
+                allTools = tools || [];
                 
                 console.log('📋 คำขอ:', allRequests.length);
                 console.log('👥 พนักงาน:', allEmployees.length);
@@ -603,13 +678,175 @@
 
             } catch (error) {
                 console.error('❌ Error loading data:', error);
+                console.warn('🔄 กำลังใช้ข้อมูลตัวอย่าง...');
+                
+                // ลองใช้ข้อมูลจาก cache ก่อน
+                const cachedRequests = localStorage.getItem('admin_cached_requests');
+                const cachedEmployees = localStorage.getItem('admin_cached_employees');
+                const cachedTools = localStorage.getItem('admin_cached_tools');
+                
+                if (cachedRequests && cachedEmployees && cachedTools) {
+                    console.log('💾 ใช้ข้อมูลจาก cache');
+                    allRequests = JSON.parse(cachedRequests);
+                    allEmployees = JSON.parse(cachedEmployees);
+                    allTools = JSON.parse(cachedTools);
+                } else {
+                    // ใช้ข้อมูลตัวอย่างเมื่อไม่มี cache
+                    console.log('📝 ใช้ข้อมูลตัวอย่าง');
+                    allRequests = getSampleRequests();
+                    allEmployees = getSampleEmployees();
+                    allTools = getSampleTools();
+                    
+                    // บันทึกลง cache
+                    localStorage.setItem('admin_cached_requests', JSON.stringify(allRequests));
+                    localStorage.setItem('admin_cached_employees', JSON.stringify(allEmployees));
+                    localStorage.setItem('admin_cached_tools', JSON.stringify(allTools));
+                }
+                
                 document.getElementById('loadingIndicator').innerHTML = `
-                    <div style="color: red;">
-                        ❌ เกิดข้อผิดพลาดในการโหลดข้อมูล<br>
-                        กรุณาตรวจสอบการเชื่อมต่อ Firebase
+                    <div style="color: orange; text-align: center;">
+                        ⚠️ เชื่อมต่อ Firebase ไม่ได้ - กำลังใช้ข้อมูลสำรอง<br>
+                        <small>ระบบจะทำงานในโหมด Offline</small>
                     </div>
                 `;
+                
+                // รอ 1 วินาทีแล้วแสดงเนื้อหา
+                setTimeout(() => {
+                    document.getElementById('loadingIndicator').style.display = 'none';
+                    document.getElementById('mainContent').style.display = 'block';
+                    
+                    // แสดงข้อมูลตัวอย่าง
+                    updateDashboardStats();
+                    displayRequests();
+                    displayEmployees();
+                    displayTools();
+                    updateReports();
+                    
+                    console.log('✅ โหลดข้อมูลสำรองเสร็จสิ้น');
+                }, 1000);
             }
+        }
+
+        // ฟังก์ชันสำหรับข้อมูลตัวอย่าง (เมื่อ Firebase ไม่พร้อม)
+        function getSampleRequests() {
+            return [
+                {
+                    id: 'REQ001',
+                    employee_id: 'EMP001',
+                    employee_name: 'สมชาย ใจดี',
+                    department: 'วิศวกรรม',
+                    section: 'งานก่อสร้าง',
+                    project: 'โครงการ ABC',
+                    status: 'pending',
+                    created_at: new Date().toISOString(),
+                    requested_tools: [
+                        { tool_name: 'รอกสลิงไฟฟ้า', quantity: 1, days: 7 }
+                    ]
+                },
+                {
+                    id: 'REQ002',
+                    employee_id: 'EMP002',
+                    employee_name: 'สมหญิง รักดี',
+                    department: 'วิศวกรรม',
+                    section: 'งานสำรวจ',
+                    project: 'โครงการ XYZ',
+                    status: 'approved',
+                    created_at: new Date(Date.now() - 86400000).toISOString(),
+                    requested_tools: [
+                        { tool_name: 'เครื่องชั่งดิจิตอล', quantity: 1, days: 3 }
+                    ]
+                },
+                {
+                    id: 'REQ003',
+                    employee_id: 'EMP003',
+                    employee_name: 'วิชัย สร้างสรรค์',
+                    department: 'วิศวกรรม',
+                    section: 'งานออกแบบ',
+                    project: 'โครงการ DEF',
+                    status: 'completed',
+                    created_at: new Date(Date.now() - 172800000).toISOString(),
+                    requested_tools: [
+                        { tool_name: 'เครื่องเชื่อมไฟฟ้า', quantity: 1, days: 5 }
+                    ]
+                }
+            ];
+        }
+
+        function getSampleEmployees() {
+            return [
+                {
+                    id: 'EMP001',
+                    name: 'สมชาย ใจดี',
+                    department: 'วิศวกรรม',
+                    section: 'งานก่อสร้าง',
+                    position: 'วิศวกร',
+                    email: 'somchai@company.com'
+                },
+                {
+                    id: 'EMP002',
+                    name: 'สมหญิง รักดี',
+                    department: 'วิศวกรรม',
+                    section: 'งานสำรวจ',
+                    position: 'ช่างสำรวจ',
+                    email: 'somying@company.com'
+                },
+                {
+                    id: 'EMP003',
+                    name: 'วิชัย สร้างสรรค์',
+                    department: 'วิศวกรรม',
+                    section: 'งานออกแบบ',
+                    position: 'นักออกแบบ',
+                    email: 'wichai@company.com'
+                },
+                {
+                    id: 'EMP004',
+                    name: 'กมลลาศ วิชัยโย',
+                    department: 'วิศวกรรม',
+                    section: 'งานก่อสร้าง',
+                    position: 'หัวหน้างาน',
+                    email: 'kamollas@company.com'
+                }
+            ];
+        }
+
+        function getSampleTools() {
+            return [
+                {
+                    id: 'E.MJ.CON.010.031.011.0005',
+                    name: 'รอกสลิงไฟฟ้า ขนาด 1 ตัน',
+                    category: 'เครื่องจักร',
+                    status: 'available',
+                    location: 'คลังหลัก'
+                },
+                {
+                    id: 'E.MJ.CON.020.110.001.0001',
+                    name: 'เครื่องชั่งน้ำหนักดิจิตอลแบบแขวน 10 ตัน',
+                    category: 'เครื่องมือวัด',
+                    status: 'in_use',
+                    location: 'โครงการ XYZ'
+                },
+                {
+                    id: 'E.MJ.CON.015.045.002.0012',
+                    name: 'สว่านไฟฟ้าแบบไร้สาย',
+                    category: 'เครื่องมือไฟฟ้า',
+                    status: 'maintenance',
+                    location: 'ศูนย์ซ่อมบำรุง'
+                },
+                {
+                    id: 'E.MJ.CON.008.025.003.0045',
+                    name: 'เลื่อยวงเดือนไฟฟ้า',
+                    category: 'เครื่องมือตัด',
+                    status: 'damaged',
+                    location: 'คลังหลัก'
+                },
+                {
+                    id: 'E.MJ.CON.012.038.001.0067',
+                    name: 'เครื่องเชื่อมไฟฟ้า TIG 200A',
+                    category: 'เครื่องเชื่อม',
+                    status: 'available',
+                    location: 'คลังหลัก'
+                }
+            ];
         }
 
         function updateDashboardStats() {

@@ -240,10 +240,6 @@ class FirebaseService {
             return [];
         }
     }
-            console.error('❌ Error fetching tools:', error);
-            return [];
-        }
-    }
 
     // ดึงข้อมูลคำขอเครื่องมือ
     async getToolRequests(employeeId = null) {

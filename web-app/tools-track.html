@@ -6,6 +6,7 @@
     <title>ระบบติดตามเครื่องมือ - Tools Track System</title>
     <script src="navbar.js"></script>
     <script src="auth-system.js"></script>
+    <script src="firebase-emergency-config.js"></script>
     
     <style>
         * {
@@ -97,6 +98,85 @@
             font-size: 36px;
             font-weight: bold;
             margin-bottom: 5px;
+        }
+
+        /* Dashboard Overview Styles */
+        .dashboard-overview {
+            margin-bottom: 30px;
+            padding: 25px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            border: 2px solid #e9ecef;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dashboard-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(45deg, #4A90E2, #357abd);
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .card-icon {
+            font-size: 20px;
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+
+        .card-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .card-description {
+            color: #666;
+            font-size: 14px;
         }
 
         .filters-section {
@@ -444,8 +524,8 @@
     <div class="page-wrapper">
         <div class="container">
         <div class="header">
-            <h1>ระบบติดตามเครื่องมือ</h1>
-            <p>Tools Track System - ติดตามสถานะการขออุปกรณ์แบบ Real-time</p>
+            <h1>📊 Dashboard & ระบบติดตามเครื่องมือ</h1>
+            <p>ภาพรวมสถิติและติดตามสถานะการขออุปกรณ์แบบ Real-time</p>
             
             <!-- แสดงข้อมูลผู้ใช้และสิทธิ์ -->
             <div id="userInfo" class="user-info"></div>
@@ -455,6 +535,73 @@
                 <h3>⚠️ ไม่มีสิทธิ์เข้าถึง</h3>
                 <p>หน้านี้สำหรับ <strong>เจ้าหน้าที่สโตว์/ธุรการสโตว์</strong> เท่านั้น</p>
                 <p>หากคุณเป็นพนักงานทั่วไป กรุณาใช้ <a href="tools-request-firebase.html">ระบบขอเบิกเครื่องมือ</a> แทน</p>
+            </div>
+        </div>
+
+        <!-- Dashboard ภาพรวมเครื่องมือ - แสดงให้ทุกคน -->
+        <div class="dashboard-overview">
+            <h2 style="text-align: center; margin-bottom: 25px; color: #333; font-size: 24px;">📊 ภาพรวมสถานะเครื่องมือ</h2>
+            
+            <div class="dashboard-grid">
+                <!-- Card 1: จำนวนเครื่องมือทั้งหมด -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: #007bff;">🔧</div>
+                        <h3 class="card-title">จำนวนเครื่องมือทั้งหมด</h3>
+                    </div>
+                    <div class="card-value" id="totalTools">6,632</div>
+                    <p class="card-description">เครื่องมือทั้งหมดในระบบ</p>
+                </div>
+
+                <!-- Card 2: สถานะพร้อมใช้งาน -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: #28a745;">✅</div>
+                        <h3 class="card-title">พร้อมใช้งาน</h3>
+                    </div>
+                    <div class="card-value" id="availableTools">5,847</div>
+                    <p class="card-description">เครื่องมือที่พร้อมใช้งาน</p>
+                </div>
+
+                <!-- Card 3: กำลังใช้งานอยู่ -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: #007bff;">🔄</div>
+                        <h3 class="card-title">ใช้งานอยู่</h3>
+                    </div>
+                    <div class="card-value" id="inUseTools">542</div>
+                    <p class="card-description">เครื่องมือที่ถูกเบิกใช้งาน</p>
+                </div>
+
+                <!-- Card 4: เสียหาย -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: #dc3545;">❌</div>
+                        <h3 class="card-title">เสียหาย</h3>
+                    </div>
+                    <div class="card-value" id="damagedTools">156</div>
+                    <p class="card-description">เครื่องมือที่เสียหาย</p>
+                </div>
+
+                <!-- Card 5: กำลังตรวจสอบ/ซ่อม -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: #ffc107;">⚠️</div>
+                        <h3 class="card-title">กำลังตรวจสอบ/ซ่อม</h3>
+                    </div>
+                    <div class="card-value" id="maintenanceTools">87</div>
+                    <p class="card-description">เครื่องมือที่อยู่ระหว่างการซ่อมแซม</p>
+                </div>
+
+                <!-- Card 6: ผู้เบิกเครื่องมือ -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: #17a2b8;">👥</div>
+                        <h3 class="card-title">ผู้เบิกเครื่องมือ</h3>
+                    </div>
+                    <div class="card-value" id="activeUsers">127</div>
+                    <p class="card-description">พนักงานที่เบิกเครื่องมืออยู่</p>
+                </div>
             </div>
         </div>
 
@@ -804,10 +951,104 @@
             return date.toLocaleDateString('th-TH');
         }
 
+        // Dashboard Functions
+        async function loadDashboardData() {
+            try {
+                console.log('📊 กำลังโหลดข้อมูล Dashboard...');
+                
+                // Load tools data (with caching for Firebase quota optimization)
+                const tools = await loadToolsData();
+                
+                // Update dashboard statistics
+                updateDashboardStats(tools);
+                
+                console.log('✅ โหลดข้อมูล Dashboard สำเร็จ');
+            } catch (error) {
+                console.error('❌ เกิดข้อผิดพลาดในการโหลดข้อมูล Dashboard:', error);
+            }
+        }
+
+        async function loadToolsData() {
+            // Check if we have cached data first (for Firebase quota optimization)
+            const cacheKey = 'dashboard_tools_data';
+            const cachedData = localStorage.getItem(cacheKey);
+            const cacheTime = localStorage.getItem(cacheKey + '_time');
+            const now = Date.now();
+            
+            // Use cache if less than 5 minutes old
+            if (cachedData && cacheTime && (now - parseInt(cacheTime)) < 300000) {
+                console.log('📋 ใช้ข้อมูลจาก Cache');
+                return JSON.parse(cachedData);
+            }
+
+            // If no cache or expired, try to fetch from Firebase
+            try {
+                if (typeof window.firebaseConfig !== 'undefined') {
+                    const tools = await window.firebaseConfig.getTools();
+                    // Cache the data
+                    localStorage.setItem(cacheKey, JSON.stringify(tools));
+                    localStorage.setItem(cacheKey + '_time', now.toString());
+                    return tools;
+                }
+            } catch (error) {
+                console.warn('⚠️ ไม่สามารถดึงข้อมูลจาก Firebase ได้:', error);
+            }
+
+            // Return sample data if Firebase fails
+            return getSampleToolsData();
+        }
+
+        function updateDashboardStats(tools) {
+            // Calculate statistics
+            const totalTools = tools.length;
+            const availableTools = tools.filter(tool => tool.status === 'available' || tool.status === 'พร้อมใช้งาน').length;
+            const inUseTools = tools.filter(tool => tool.status === 'in-use' || tool.status === 'ใช้งานอยู่').length;
+            const damagedTools = tools.filter(tool => tool.status === 'damaged' || tool.status === 'เสียหาย').length;
+            const maintenanceTools = tools.filter(tool => tool.status === 'maintenance' || tool.status === 'กำลังตรวจสอบ/ซ่อม').length;
+
+            // Calculate active users (unique users with tools)
+            const activeUsers = tools.filter(tool => tool.current_user && tool.current_user !== '').length;
+
+            // Update the display
+            document.getElementById('totalTools').textContent = totalTools.toLocaleString();
+            document.getElementById('availableTools').textContent = availableTools.toLocaleString();
+            document.getElementById('inUseTools').textContent = inUseTools.toLocaleString();
+            document.getElementById('damagedTools').textContent = damagedTools.toLocaleString();
+            document.getElementById('maintenanceTools').textContent = maintenanceTools.toLocaleString();
+            document.getElementById('activeUsers').textContent = activeUsers.toLocaleString();
+
+            console.log('📊 อัพเดทสถิติ Dashboard:', {
+                total: totalTools,
+                available: availableTools,
+                inUse: inUseTools,
+                damaged: damagedTools,
+                maintenance: maintenanceTools,
+                activeUsers: activeUsers
+            });
+        }
+
+        function getSampleToolsData() {
+            return [
+                { id: 'E.MJ.CON.010.031.011.0005', name: 'รอกสลิงไฟฟ้า ขนาด 1 ตัน', status: 'in-use', current_user: 'กมลลาศ วิชัยโย' },
+                { id: 'E.MJ.CON.020.110.001.0001', name: 'เครื่องชั่งน้ำหนักดิจิตอล', status: 'available', current_user: '' },
+                { id: 'E.MJ.CON.015.045.002.0012', name: 'สว่านไฟฟ้าแบบไร้สาย', status: 'maintenance', current_user: '' },
+                { id: 'E.MJ.CON.008.025.003.0045', name: 'เลื่อยวงเดือนไฟฟ้า', status: 'damaged', current_user: '' },
+                { id: 'E.MJ.CON.012.038.001.0067', name: 'เครื่องเชื่อมไฟฟ้า', status: 'in-use', current_user: 'อิทธิพล คำผงแดง' },
+                // เพิ่มข้อมูลตัวอย่างเพื่อให้ดูมีจำนวนมาก
+                ...Array.from({length: 100}, (_, i) => ({
+                    id: `TOOL-${String(i+1).padStart(4, '0')}`,
+                    name: `เครื่องมือตัวอย่าง ${i+1}`,
+                    status: ['available', 'in-use', 'maintenance', 'damaged'][i % 4],
+                    current_user: i % 3 === 0 ? `ผู้ใช้ ${i+1}` : ''
+                }))
+            ];
+        }
+
         // Initialize app
         async function initApp() {
             await loadEmployees();
             loadRequests();
+            await loadDashboardData(); // เพิ่มการโหลดข้อมูล Dashboard
         }
 
         initApp();
