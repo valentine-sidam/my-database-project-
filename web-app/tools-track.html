@@ -236,6 +236,27 @@
         .category-card.safety { border-left: 4px solid #dc3545; }
         .category-card.other { border-left: 4px solid #6f42c1; }
 
+        /* Management Tabs Styles */
+        .management-tabs .tab-btn:hover {
+            background: #5a8bb8 !important;
+            color: white !important;
+        }
+
+        .management-tabs .tab-btn.active {
+            background: #4a7ba7 !important;
+            color: white !important;
+            box-shadow: inset 0 -3px 0 0 #2d5a7b;
+        }
+
+        /* Tab Content Sections */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
         /* Chart Section Styles */
         .chart-section {
             margin-bottom: 30px;
@@ -1260,7 +1281,6 @@
             <div class="charts-and-filters-container">
                 <!-- แผนภูมิโดนัท -->
                 <div class="donut-chart-area">
-                    <h3 style="text-align: center; margin-bottom: 10px; color: #555;">📊 สถานะเครื่องมือ - แผนภูมิโดนัท</h3>
             
             <div class="chart-container">
                 <div class="chart-wrapper">
@@ -1347,6 +1367,19 @@
 
     <!-- ตารางแสดงรายละเอียดเครื่องมือ -->
     <div class="tools-table-section">
+        <!-- แท็บเมนูจัดการ -->
+        <div class="management-tabs" style="display: flex; gap: 0; margin-bottom: 20px; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.08); border: 2px solid #d4d0c8;">
+            <button class="tab-btn active" onclick="switchTab('requests')" data-tab="requests" style="flex: 1; padding: 15px 20px; background: #4a7ba7; color: white; border: none; cursor: pointer; font-size: 15px; font-weight: 600; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                📋 จัดการคำขอเบิกเครื่องมือ
+            </button>
+            <button class="tab-btn" onclick="switchTab('return')" data-tab="return" style="flex: 1; padding: 15px 20px; background: #f5f5f0; color: #333; border: none; cursor: pointer; font-size: 15px; font-weight: 600; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                🔄 ส่งคืนเครื่องมือ
+            </button>
+            <button class="tab-btn" onclick="switchTab('storage')" data-tab="storage" style="flex: 1; padding: 15px 20px; background: #f5f5f0; color: #333; border: none; cursor: pointer; font-size: 15px; font-weight: 600; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                📦 จัดเก็บเครื่องมือ
+            </button>
+        </div>
+
         <!-- หัวข้อหลักพร้อมปุ่มจัดการ -->
         <div class="main-header" style="background: white; color: #333; padding: 15px 25px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); border: 2px solid #d4d0c8;">
             <div>
@@ -2016,6 +2049,8 @@
         }
 
         function filterToolsByCategory(category) {
+            console.log('🔍 กรองตามหมวดหมู่:', category);
+            
             // กรองเครื่องมือตามหมวดหมู่
             const filteredTools = currentToolsData.filter(tool => 
                 getToolCategory(tool) === category
@@ -2023,51 +2058,53 @@
 
             const info = getCategoryInfo(category);
             
-            // แสดงผลการกรอง
-            console.log(`🔍 กรองตามหมวดหมู่: ${info.name} (${category}), พบ ${filteredTools.length} รายการ`);
+            console.log(`✅ พบ ${filteredTools.length} รายการในหมวด${info.name}`);
             
             // อัพเดท filteredToolsData และแสดงในตาราง
             filteredToolsData = filteredTools;
             currentPage = 1; // รีเซ็ตหน้า
             
-            // อัพเดทตารางด้วยข้อมูลที่กรองแล้ว
-            displayToolsTable();
-            updatePagination(filteredTools.length);
+            // อัพเดทหัวข้อตาราง
+            const tableTitle = document.getElementById('tableTitle');
+            if (tableTitle) {
+                tableTitle.innerHTML = `<span style="color: ${info.color};">${info.icon} เครื่องมือ${info.name}</span>`;
+            }
             
-            // อัพเดทข้อความแสดงจำนวน
+            // อัพเดทตัวเลขจำนวน
             const toolsCountElement = document.getElementById('toolsCount');
-            const tableTitleElement = document.getElementById('tableTitle');
-            const categoryFilterInfo = document.getElementById('categoryFilterInfo');
-            const categoryFilterText = document.getElementById('categoryFilterText');
-            
             if (toolsCountElement) {
                 toolsCountElement.textContent = filteredTools.length;
             }
             
-            if (tableTitleElement) {
-                tableTitleElement.textContent = `เครื่องมือ${info.name}`;
-            }
-            
+            // แสดงข้อมูลการกรองหมวดหมู่
+            const categoryFilterInfo = document.getElementById('categoryFilterInfo');
+            const categoryFilterText = document.getElementById('categoryFilterText');
             if (categoryFilterInfo && categoryFilterText) {
-                categoryFilterText.textContent = `🔍 กำลังแสดงเครื่องมือในหมวด: ${info.name}`;
+                categoryFilterText.innerHTML = `🔍 กำลังแสดงเครื่องมือในหมวด: <strong>${info.name}</strong>`;
                 categoryFilterInfo.style.display = 'block';
             }
-
+            
+            // แสดงตาราง
+            displayToolsTable();
+            updatePagination(filteredTools.length);
+            
             // เลื่อนไปยังตาราง
             const tableSection = document.querySelector('.tools-table-section');
             if (tableSection) {
-                tableSection.scrollIntoView({ behavior: 'smooth' });
+                tableSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         }
 
         function clearCategoryFilter() {
+            console.log('🔄 ล้างตัวกรองหมวดหมู่');
+            
             // คืนค่าการแสดงข้อมูลทั้งหมด
-            filteredToolsData = [...allToolsData];
+            filteredToolsData = [...currentToolsData];
             currentPage = 1;
             
             // อัพเดทตาราง
             displayToolsTable();
-            updatePagination(allToolsData.length);
+            updatePagination(filteredToolsData.length);
             
             // อัพเดทข้อความ
             const toolsCountElement = document.getElementById('toolsCount');
@@ -2075,7 +2112,7 @@
             const categoryFilterInfo = document.getElementById('categoryFilterInfo');
             
             if (toolsCountElement) {
-                toolsCountElement.textContent = allToolsData.length;
+                toolsCountElement.textContent = currentToolsData.length;
             }
             
             if (tableTitleElement) {
@@ -2086,7 +2123,7 @@
                 categoryFilterInfo.style.display = 'none';
             }
             
-            console.log('🔄 ล้างตัวกรองหมวดหมู่ แสดงเครื่องมือทั้งหมด');
+            console.log('✅ ล้างตัวกรองหมวดหมู่ แสดงเครื่องมือทั้งหมด');
         }
 
         function updateCategoryStats(tools, selectedCategory = 'all') {
@@ -2569,18 +2606,61 @@
                         <td>${tool.borrow_date || '<span style="color: #999;">-</span>'}</td>
                         <td>${tool.notes || '<span style="color: #999;">-</span>'}</td>
                         <td>
-                            <button class="btn-action btn-edit" onclick="editTool('${tool.id}')" title="แก้ไข">
-                                ✏️
-                            </button>
-                            <button class="btn-action btn-history" onclick="viewHistory('${tool.id}')" title="ประวัติ">
-                                📋
-                            </button>
+                            ${getActionButtons(tool)}
                         </td>
                     </tr>
                 `;
             }).join('');
             
             updatePagination(filteredToolsData.length);
+        }
+
+        // ฟังก์ชันสร้างปุ่มการจัดการตามแท็บปัจจุบัน
+        function getActionButtons(tool) {
+            const buttons = [];
+
+            // ปุ่มแก้ไข (แสดงทุกแท็บ)
+            buttons.push(`
+                <button class="btn-action btn-edit" onclick="editTool('${tool.id}')" title="แก้ไข">
+                    ✏️
+                </button>
+            `);
+
+            // ปุ่มตามแท็บปัจจุบัน
+            switch(currentTab) {
+                case 'requests':
+                    // แท็บจัดการคำขอ: แสดงปุ่มดูประวัติ
+                    buttons.push(`
+                        <button class="btn-action btn-history" onclick="viewHistory('${tool.id}')" title="ดูประวัติ">
+                            📋
+                        </button>
+                    `);
+                    break;
+                
+                case 'return':
+                    // แท็บส่งคืน: แสดงปุ่มรับคืน
+                    if (tool.status === 'in-use' || tool.status === 'ใช้งานอยู่') {
+                        buttons.push(`
+                            <button class="btn-action btn-return" onclick="returnTool('${tool.id}')" title="รับคืนเครื่องมือ" style="background: #28a745; color: white; padding: 5px 10px; border-radius: 4px;">
+                                🔄 คืน
+                            </button>
+                        `);
+                    }
+                    break;
+                
+                case 'storage':
+                    // แท็บจัดเก็บ: แสดงปุ่มจัดเก็บ (เปลี่ยนเป็น available)
+                    if (tool.status === 'maintenance' || tool.status === 'กำลังตรวจสอบ/ซ่อม') {
+                        buttons.push(`
+                            <button class="btn-action btn-store" onclick="storeTool('${tool.id}')" title="จัดเก็บเครื่องมือ" style="background: #007bff; color: white; padding: 5px 10px; border-radius: 4px;">
+                                ✅ เสร็จแล้ว
+                            </button>
+                        `);
+                    }
+                    break;
+            }
+
+            return buttons.join('');
         }
 
         function updatePagination(totalItems) {
@@ -2708,6 +2788,131 @@
 
         function viewHistory(toolId) {
             alert(`ดูประวัติเครื่องมือ: ${toolId}\n(ฟีเจอร์นี้จะพัฒนาในอนาคต)`);
+        }
+
+        // Tab Management Functions
+        let currentTab = 'requests'; // เริ่มต้นที่แท็บจัดการคำขอ
+
+        function switchTab(tabName) {
+            console.log('🔄 สลับไปแท็บ:', tabName);
+            currentTab = tabName;
+
+            // อัพเดทสถานะปุ่มแท็บ
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                if (btn.getAttribute('data-tab') === tabName) {
+                    btn.classList.add('active');
+                    btn.style.background = '#4a7ba7';
+                    btn.style.color = 'white';
+                } else {
+                    btn.classList.remove('active');
+                    btn.style.background = '#f5f5f0';
+                    btn.style.color = '#333';
+                }
+            });
+
+            // แสดงข้อมูลตามแท็บ
+            switch(tabName) {
+                case 'requests':
+                    showRequestsTab();
+                    break;
+                case 'return':
+                    showReturnTab();
+                    break;
+                case 'storage':
+                    showStorageTab();
+                    break;
+            }
+        }
+
+        function showRequestsTab() {
+            console.log('📋 แสดงแท็บจัดการคำขอเบิกเครื่องมือ');
+            
+            // แสดงเฉพาะเครื่องมือที่มีสถานะ "in-use" (ถูกเบิกไปแล้ว)
+            const requestedTools = currentToolsData.filter(tool => 
+                tool.status === 'in-use' || tool.status === 'ใช้งานอยู่'
+            );
+
+            filteredToolsData = requestedTools;
+            currentPage = 1;
+
+            // อัพเดทหัวข้อ
+            const tableTitle = document.getElementById('tableTitle');
+            if (tableTitle) {
+                tableTitle.innerHTML = '📋 รายการเครื่องมือที่ถูกเบิกไปแล้ว';
+            }
+
+            displayToolsTable();
+            updatePagination(filteredToolsData.length);
+        }
+
+        function showReturnTab() {
+            console.log('🔄 แสดงแท็บส่งคืนเครื่องมือ');
+            
+            // แสดงเฉพาะเครื่องมือที่มีสถานะ "in-use" (ต้องคืน)
+            const returnTools = currentToolsData.filter(tool => 
+                tool.status === 'in-use' || tool.status === 'ใช้งานอยู่'
+            );
+
+            filteredToolsData = returnTools;
+            currentPage = 1;
+
+            // อัพเดทหัวข้อ
+            const tableTitle = document.getElementById('tableTitle');
+            if (tableTitle) {
+                tableTitle.innerHTML = '🔄 รายการเครื่องมือที่ต้องรับคืน';
+            }
+
+            displayToolsTable();
+            updatePagination(filteredToolsData.length);
+        }
+
+        function showStorageTab() {
+            console.log('📦 แสดงแท็บจัดเก็บเครื่องมือ');
+            
+            // แสดงเครื่องมือที่อยู่ในสถานะ maintenance (กำลังตรวจสอบ/ซ่อม)
+            const storageTools = currentToolsData.filter(tool => 
+                tool.status === 'maintenance' || tool.status === 'กำลังตรวจสอบ/ซ่อม'
+            );
+
+            filteredToolsData = storageTools;
+            currentPage = 1;
+
+            // อัพเดทหัวข้อ
+            const tableTitle = document.getElementById('tableTitle');
+            if (tableTitle) {
+                tableTitle.innerHTML = '📦 รายการเครื่องมือที่กำลังตรวจสอบ/ซ่อม';
+            }
+
+            displayToolsTable();
+            updatePagination(filteredToolsData.length);
+        }
+
+        // ฟังก์ชันสำหรับการคืนเครื่องมือ
+        function returnTool(toolId) {
+            if (!confirm(`ยืนยันการรับคืนเครื่องมือ: ${toolId}?\n\nเครื่องมือจะถูกเปลี่ยนสถานะเป็น "กำลังตรวจสอบ/ซ่อม"`)) {
+                return;
+            }
+
+            // TODO: อัพเดทสถานะใน Firebase
+            console.log('🔄 รับคืนเครื่องมือ:', toolId);
+            alert(`รับคืนเครื่องมือ ${toolId} สำเร็จ!\nสถานะถูกเปลี่ยนเป็น "กำลังตรวจสอบ/ซ่อม"`);
+            
+            // รีเฟรชข้อมูล
+            refreshToolsData();
+        }
+
+        // ฟังก์ชันสำหรับการจัดเก็บเครื่องมือ (เปลี่ยนสถานะเป็น available)
+        function storeTool(toolId) {
+            if (!confirm(`ยืนยันการจัดเก็บเครื่องมือ: ${toolId}?\n\nเครื่องมือจะถูกเปลี่ยนสถานะเป็น "พร้อมใช้งาน"`)) {
+                return;
+            }
+
+            // TODO: อัพเดทสถานะใน Firebase
+            console.log('📦 จัดเก็บเครื่องมือ:', toolId);
+            alert(`จัดเก็บเครื่องมือ ${toolId} สำเร็จ!\nสถานะถูกเปลี่ยนเป็น "พร้อมใช้งาน"`);
+            
+            // รีเฟรชข้อมูล
+            refreshToolsData();
         }
 
         // Initialize tools table when data is loaded
