@@ -38,7 +38,6 @@ class ToolsTrackNavbar {
                 <!-- Navigation Menu -->
                 <div class="navbar-menu">
                     <a href="tools-request-firebase.html" class="nav-item ${this.currentPage === 'request' ? 'active' : ''}">📝 ขอเบิกเครื่องมือ</a>
-                    <a href="tools-track.html" class="nav-item ${this.currentPage === 'track' ? 'active' : ''}">🔍 ติดตามสถานะ</a>
                     <a href="admin-firebase.html" class="nav-item ${this.currentPage === 'admin' ? 'active' : ''}">⚙️ ระบบจัดการ</a>
                 </div>
 
